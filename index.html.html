@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speakeng Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17233B;
+    --cream:#FFF8ED;
+    --mango:#FFB000;
+    --coral:#FF6B5E;
+    --teal:#36B8A5;
+    --mint:#D8F5E8;
+    --blue:#4D7CFE;
+    --paper:#FFFFFF;
+    --line: rgba(23,35,59,0.10);
+    --shadow: 0 10px 30px rgba(23,35,59,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--cream);
+    color: var(--ink);
+    font-family:'Manrope', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Baloo 2', 'Manrope', sans-serif;
+    margin:0;
+    color: var(--ink);
+    line-height:1.15;
+  }
+  button{ font-family: inherit; cursor:pointer; border:none; background:none; }
+  .app{
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--cream);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom: 84px;
+  }
+  @media (min-width: 860px){
+    .app{
+      max-width: 1080px;
+      min-height: 100vh;
+      display:grid;
+      grid-template-columns: 220px 1fr 280px;
+      gap:0;
+      padding-bottom:0;
+    }
+    .app.onboarding-mode{ display:block; max-width:480px; }
+    .sidebar{ display:flex !important; }
+    .bottomnav{ display:none !important; }
+    .main-col{ border-left:1px solid var(--line); border-right:1px solid var(--line); }
+    .side-panel{ display:flex !important; }
+  }
+  .sidebar{
+    display:none;
+    flex-direction:column;
+    padding:28px 18px;
+    gap:6px;
+  }
+  .sidebar .brand{ display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 10px;}
+  .sidebar .brand .mark{ width:34px;height:34px; }
+  .sidebar .brand span{ font-family:'Baloo 2'; font-weight:700; font-size:18px; }
+  .sidebar button{
+    text-align:left; padding:11px 14px; border-radius:14px; font-weight:700; font-size:14.5px;
+    color: var(--ink); opacity:0.55; display:flex; align-items:center; gap:10px;
+  }
+  .sidebar button.active{ background: var(--paper); opacity:1; box-shadow: var(--shadow); color:var(--coral); }
+  .side-panel{
+    display:none;
+    flex-direction:column;
+    padding:28px 20px;
+    gap:18px;
+  }
+  .main-col{ padding: 0; min-height:100vh; }
+
+  /* top bar */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 20px 8px;
+  }
+  .pill{
+    display:flex; align-items:center; gap:6px;
+    background: var(--paper); border-radius:100px; padding:6px 12px;
+    font-weight:800; font-size:13.5px; box-shadow: var(--shadow);
+  }
+  .pill.streak{ color:#D9540A; }
+  .pill.coins{ color:#B8860B; }
+
+  .screen{ padding: 4px 20px 20px; animation: fadein .35s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  /* ---------- Onboarding ---------- */
+  .ob-wrap{ min-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:32px 24px; }
+  .ob-mascot{ text-align:center; margin: 10px 0 6px; }
+  .brand-word{ font-family:'Baloo 2'; font-weight:800; font-size:34px; color:var(--ink); margin: 6px 0 4px; }
+  .brand-word.small{ font-size:20px; margin:0; }
+  .brand-tag{ font-size:14px; color:#7a6a4a; font-weight:600; margin-bottom:6px; }
+  .ob-card h2{ font-size:26px; font-weight:700; margin-bottom:6px; }
+  .ob-mr{ color:#6B5B3A; font-size:15px; margin-bottom:22px; }
+  .ob-options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    background: var(--paper); border:2px solid transparent; border-radius:16px;
+    padding:15px 16px; font-weight:700; font-size:15px; text-align:left;
+    box-shadow: var(--shadow); transition: transform .12s ease, border-color .12s ease;
+  }
+  .opt .mr{ display:block; font-weight:500; font-size:12.5px; color:#7a6a4a; margin-top:2px; }
+  .opt:active{ transform: scale(0.98); }
+  .opt.selected{ border-color: var(--coral); background: #FFF0EE; }
+  .ob-input{
+    width:100%; padding:15px 16px; border-radius:16px; border:2px solid var(--line);
+    font-size:16px; font-weight:600; font-family:inherit; background:var(--paper);
+  }
+  .ob-input:focus{ outline:none; border-color: var(--coral); }
+  .btn{
+    padding:16px 20px; border-radius:16px; font-weight:800; font-size:15.5px;
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  }
+  .btn-primary{ background: var(--coral); color:white; box-shadow: 0 8px 20px rgba(255,107,94,0.35); }
+  .btn-primary:disabled{ opacity:0.35; }
+  .btn-primary:active{ transform: scale(0.98); }
+  .btn-ghost{ background: transparent; color: var(--ink); opacity:0.55; font-weight:700; }
+  .ob-progress{ display:flex; gap:6px; margin-bottom:20px; }
+  .ob-progress i{ flex:1; height:5px; border-radius:4px; background: var(--line); }
+  .ob-progress i.done{ background: var(--coral); }
+
+  /* ---------- Home ---------- */
+  .greet{ font-size:22px; font-weight:700; margin:10px 0 2px; }
+  .greet-mr{ color:#7a6a4a; font-size:13.5px; margin-bottom:18px; }
+  .continue-card{
+    background: linear-gradient(135deg, var(--ink), #23345a);
+    border-radius:22px; padding:20px; color:white; position:relative; overflow:hidden; margin-bottom:18px;
+  }
+  .continue-card .tag{ font-size:12px; font-weight:700; color:var(--mango); margin-bottom:6px; }
+  .continue-card h3{ color:white; font-size:19px; margin-bottom:4px; }
+  .continue-card p{ margin:0 0 16px; font-size:13px; color:#C9D2E5; }
+  .continue-card button{
+    background: var(--mango); color:var(--ink); font-weight:800; padding:11px 18px; border-radius:100px; font-size:14px;
+  }
+  .section-title{ font-weight:800; font-size:15px; margin: 22px 0 12px; display:flex; align-items:center; justify-content:space-between; }
+  .world-map{ display:flex; flex-direction:column; gap:0; position:relative; padding-left:6px; }
+  .stage-row{ display:flex; align-items:center; gap:14px; padding:10px 0; position:relative; }
+  .stage-row:not(:last-child)::after{
+    content:''; position:absolute; left:23px; top:52px; width:2px; height:34px; background: var(--line);
+  }
+  .stage-dot{
+    width:48px; height:48px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    font-size:20px; flex-shrink:0; box-shadow: var(--shadow);
+  }
+  .stage-dot.locked{ background: var(--paper); opacity:0.5; }
+  .stage-dot.unlocked{ background: var(--mint); }
+  .stage-dot.done{ background: var(--teal); }
+  .stage-info{ flex:1; }
+  .stage-info .t{ font-weight:800; font-size:14.5px; }
+  .stage-info .m{ font-size:12px; color:#7a6a4a; }
+  .stage-stars{ font-size:12px; color: var(--mango); }
+  .quick-speak{
+    position:fixed; bottom:96px; right:calc(50% - 240px + 20px); z-index:20;
+    width:56px; height:56px; border-radius:50%; background: var(--coral); color:white;
+    display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow: 0 10px 24px rgba(255,107,94,0.4);
+  }
+  @media (max-width:859px){ .quick-speak{ right:20px; } }
+  @media (min-width:860px){ .quick-speak{ display:none; } }
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background: var(--paper);
+    border-top:1px solid var(--line); display:flex; z-index:30;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  .app{ position:relative; }
+  .bottomnav-inner{ max-width:480px; margin:0 auto; display:flex; width:100%; }
+  .navbtn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; font-size:10.5px; font-weight:700; opacity:0.45; }
+  .navbtn.active{ opacity:1; color:var(--coral); }
+  .navbtn .ic{ font-size:19px; }
+
+  /* ---------- Lesson ---------- */
+  .lesson-top{ display:flex; align-items:center; gap:12px; padding:16px 20px 6px; }
+  .close-x{ font-size:20px; opacity:0.5; }
+  .lesson-bar{ flex:1; height:10px; background: var(--line); border-radius:10px; overflow:hidden; }
+  .lesson-bar i{ display:block; height:100%; background: var(--teal); border-radius:10px; transition: width .3s ease; }
+  .lesson-card{ background: var(--paper); border-radius:22px; padding:24px 20px; margin:18px 20px; box-shadow: var(--shadow); }
+  .mr-line{ font-size:16px; color:#5a4a2a; margin-bottom:10px; font-weight:600; }
+  .en-line{ font-size:25px; font-weight:800; margin-bottom:16px; }
+  .listen-btn{ display:inline-flex; align-items:center; gap:8px; background: var(--mint); color:#116655; padding:10px 16px; border-radius:100px; font-weight:800; font-size:13.5px; }
+  .hint{ margin-top:16px; font-size:12.5px; color:#8a7a5a; background: #FFF3DC; padding:10px 12px; border-radius:12px; }
+  .word-bank{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; min-height:40px; }
+  .word-chip{ background: var(--paper); border:2px solid var(--line); border-radius:12px; padding:9px 14px; font-weight:700; font-size:14.5px; }
+  .word-chip.used{ opacity:0.25; pointer-events:none; }
+  .answer-slot{ display:flex; flex-wrap:wrap; gap:8px; min-height:44px; border-bottom:2px dashed var(--line); padding-bottom:14px; margin-bottom:16px; }
+  .answer-chip{ background: var(--mint); border-radius:12px; padding:9px 14px; font-weight:700; font-size:14.5px; }
+  .mic-btn{
+    width:84px; height:84px; border-radius:50%; background: var(--coral); color:white; font-size:30px;
+    display:flex; align-items:center; justify-content:center; margin: 8px auto 6px; box-shadow: 0 10px 24px rgba(255,107,94,0.35);
+  }
+  .mic-btn.listening{ animation: pulse 1.1s infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(255,107,94,0.5);} 70%{box-shadow:0 0 0 18px rgba(255,107,94,0);} 100%{box-shadow:0 0 0 0 rgba(255,107,94,0);} }
+  .feedback-box{ text-align:center; padding:14px; border-radius:16px; margin-top:14px; font-weight:700; font-size:14.5px; }
+  .feedback-box.good{ background: var(--mint); color:#116655; }
+  .feedback-box.retry{ background:#FFF0EE; color:#B5453A; }
+  .type-fallback{ width:100%; margin-top:14px; padding:13px 14px; border-radius:14px; border:2px solid var(--line); font-family:inherit; font-size:14.5px; }
+  .mcq-opt{ width:100%; text-align:left; background: var(--paper); border:2px solid var(--line); border-radius:14px; padding:13px 14px; font-weight:700; font-size:14.5px; margin-bottom:9px; }
+  .mcq-opt.correct{ border-color: var(--teal); background: var(--mint); }
+  .mcq-opt.wrong{ border-color: var(--coral); background:#FFF0EE; }
+
+  /* completion */
+  .complete-wrap{ text-align:center; padding: 40px 24px; }
+  .stars-row{ font-size:40px; margin: 18px 0 6px; letter-spacing:6px; }
+  .reward-grid{ display:flex; justify-content:center; gap:14px; margin:22px 0; }
+  .reward-chip{ background: var(--paper); border-radius:16px; padding:14px 18px; box-shadow: var(--shadow); min-width:88px; }
+  .reward-chip .n{ font-weight:800; font-size:20px; }
+  .reward-chip .l{ font-size:11px; opacity:0.6; font-weight:700; }
+
+  /* progress screen */
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+  .stat-card{ background: var(--paper); border-radius:18px; padding:16px; box-shadow: var(--shadow); }
+  .stat-card .n{ font-size:24px; font-weight:800; }
+  .stat-card .l{ font-size:12px; opacity:0.6; font-weight:700; }
+  .badge-grid{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .badge{ background: var(--paper); border-radius:16px; padding:14px; text-align:center; width:92px; box-shadow: var(--shadow); }
+  .badge.locked{ opacity:0.3; }
+  .badge .ic{ font-size:26px; }
+  .badge .l{ font-size:10.5px; font-weight:700; margin-top:4px; }
+  .week-row{ display:flex; gap:6px; margin-top:6px; }
+  .week-day{ flex:1; aspect-ratio:1; border-radius:10px; background: var(--paper); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; box-shadow: var(--shadow); }
+  .week-day.done{ background: var(--mango); color:white; }
+
+  .card{ background: var(--paper); border-radius:20px; padding:18px; box-shadow: var(--shadow); margin-bottom:14px; }
+  .empty-note{ font-size:13px; color:#8a7a5a; }
+  a.link{ color: var(--blue); font-weight:700; text-decoration:none; }
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script>
+(function(){
+
+/* ---------------- DATA ---------------- */
+
+const MASCOT = `<svg width="120" height="120" viewBox="0 0 120 120">
+  <circle cx="60" cy="60" r="52" fill="#FFB000" opacity="0.18"/>
+  <circle cx="60" cy="66" r="38" fill="#36B8A5"/>
+  <circle cx="46" cy="58" r="6" fill="#17233B"/>
+  <circle cx="74" cy="58" r="6" fill="#17233B"/>
+  <path d="M45 76 Q60 88 75 76" stroke="#17233B" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M40 34 Q60 12 80 34" stroke="#FF6B5E" stroke-width="8" fill="none" stroke-linecap="round"/>
+</svg>`;
+
+const LOGO = `<svg viewBox="0 0 40 40" class="mark"><circle cx="20" cy="20" r="20" fill="#36B8A5"/><circle cx="14" cy="18" r="2.6" fill="#17233B"/><circle cx="26" cy="18" r="2.6" fill="#17233B"/><path d="M12 25 Q20 32 28 25" stroke="#17233B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+
+const GOALS = [
+  {id:'job', en:'For work / job interviews', mr:'नोकरीसाठी'},
+  {id:'travel', en:'For travel', mr:'प्रवासासाठी'},
+  {id:'confidence', en:'To build confidence', mr:'आत्मविश्वासासाठी'},
+  {id:'daily', en:'For daily conversation', mr:'रोजच्या संभाषणासाठी'},
+];
+const LEVELS = [
+  {id:'foundation', en:'Just starting out', mr:'सुरुवात'},
+  {id:'basic', en:'I know a few words', mr:'थोडं येतं'},
+  {id:'inter', en:'I can make simple sentences', mr:'वाक्य जमतात'},
+  {id:'adv', en:'I speak but want to improve', mr:'बोलतो, सुधारायचंय'},
+];
+
+// One complete world, per MVP guidance: "First Words"
+const STAGES = [
+  { id:0, title:'Greetings', mr:'नमस्कार', icon:'👋',
+    teach:{ mr:'भेटल्यावर आपण असं म्हणतो —', en:'Hello, how are you?' },
+    words:['Hello',',','how','are','you','?'],
+    mcq:{ q:'When do you say "Hello, how are you?"', mr:'हे वाक्य कधी वापरायचं?', options:['When you meet someone','When you say goodbye','When you are angry'], correct:0 } },
+  { id:1, title:'My Name', mr:'माझं नाव', icon:'🙋',
+    teach:{ mr:'स्वतःची ओळख करून देताना —', en:'My name is Amol.' },
+    words:['My','name','is','Amol','.'],
+    mcq:{ q:'Which word means "नाव" (name)?', mr:'', options:['name','is','my'], correct:0 } },
+  { id:2, title:'Numbers', mr:'आकडे', icon:'🔢',
+    teach:{ mr:'वय सांगताना —', en:'I am twenty years old.' },
+    words:['I','am','twenty','years','old','.'],
+    mcq:{ q:'"I am twenty years old" tells us the person\'s —', mr:'', options:['age','name','address'], correct:0 } },
+  { id:3, title:'Family', mr:'कुटुंब', icon:'👪',
+    teach:{ mr:'कुटुंबाची ओळख करून देताना —', en:'This is my mother.' },
+    words:['This','is','my','mother','.'],
+    mcq:{ q:'"Mother" means —', mr:'', options:['आई','वडील','भाऊ'], correct:0 } },
+  { id:4, title:'My Things', mr:'माझ्या वस्तू', icon:'🎒',
+    teach:{ mr:'वस्तू दाखवताना —', en:'This is my bag.' },
+    words:['This','is','my','bag','.'],
+    mcq:{ q:'Which word means "पिशवी" (bag)?', mr:'', options:['bag','this','my'], correct:0 } },
+  { id:5, title:'Boss Conversation', mr:'अंतिम संभाषण', icon:'🏆',
+    teach:{ mr:'सगळं एकत्र वापरून बोला —', en:'Hello! My name is Amol and I am twenty years old.' },
+    words:['Hello','!','My','name','is','Amol'],
+    mcq:{ q:'This stage combines —', mr:'', options:['Everything you learned so far','Only numbers','Only family words'], correct:0 } },
+];
+
+/* ---------------- STATE ---------------- */
+
+function freshState(name){
+  return {
+    onboarded:false,
+    profile:{ name: name||'', langHelp:'', goal:'', level:'' },
+    xp:0, coins:0, stars:0, streak:0, lastPracticeDate:null,
+    completed:{}, // stageId -> stars earned
+    weekLog:{}, // 'YYYY-MM-DD' -> true
+  };
+}
+
+let state = freshState('');
+let screen = 'loading';
+let obStep = 0;
+let obDraft = {};
+let activeStageId = null;
+let lessonStep = 0; // 0 teach, 1 arrange, 2 speak, 3 review, 4 complete
+let arrangeAnswer = [];
+let arrangeBank = [];
+let speakResult = null; // 'good' | 'retry' | null
+let recognizing = false;
+let lastEarned = {xp:0, stars:0, coins:0};
+
+let currentUser = null; // lowercase email of logged-in demo account
+let authMode = 'signup'; // 'signup' | 'login'
+let authError = '';
+let authDraft = { name:'', email:'', password:'' };
+
+const USERS_KEY = 'speakeng_users_v1';       // shared demo account directory
+const LAST_USER_KEY = 'speakeng_last_user';  // personal, this device only
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function stateKeyFor(email){ return 'speakeng_state_' + email; }
+
+async function getUsers(){
+  try{
+    const res = await window.storage.get(USERS_KEY, true);
+    return (res && res.value) ? JSON.parse(res.value) : {};
+  }catch(e){ return {}; }
+}
+async function saveUsers(users){
+  try{ await window.storage.set(USERS_KEY, JSON.stringify(users), true); }
+  catch(e){ console.error('save users failed', e); }
+}
+
+async function loadUserState(email){
+  try{
+    const res = await window.storage.get(stateKeyFor(email), true);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return null;
+}
+
+async function saveState(){
+  if(!currentUser) return;
+  try{ await window.storage.set(stateKeyFor(currentUser), JSON.stringify(state), true); }
+  catch(e){ console.error('save failed', e); }
+}
+
+async function rememberLastUser(email){
+  try{ await window.storage.set(LAST_USER_KEY, email, false); }catch(e){}
+}
+async function forgetLastUser(){
+  try{
+    const res = await window.storage.get(LAST_USER_KEY, false);
+    if(res) await window.storage.delete(LAST_USER_KEY, false);
+  }catch(e){}
+}
+
+async function boot(){
+  try{
+    const res = await window.storage.get(LAST_USER_KEY, false);
+    if(res && res.value){
+      const email = res.value;
+      const saved = await loadUserState(email);
+      if(saved){
+        currentUser = email;
+        state = Object.assign(freshState(''), saved);
+        screen = state.onboarded ? 'home' : 'onboarding';
+        obDraft = { name: state.profile.name };
+        render();
+        return;
+      }
+    }
+  }catch(e){}
+  screen = 'landing';
+  render();
+}
+
+async function handleSignup(){
+  const name = authDraft.name.trim();
+  const email = authDraft.email.trim().toLowerCase();
+  const pass = authDraft.password;
+  if(!name || !email || !pass){ authError='Please fill in every field.'; render(); return; }
+  if(!email.includes('@')){ authError='Enter a valid email.'; render(); return; }
+  const users = await getUsers();
+  if(users[email]){ authError='An account with this email already exists — try logging in.'; render(); return; }
+  users[email] = { name, email, password: pass };
+  await saveUsers(users);
+  currentUser = email;
+  state = freshState(name);
+  await saveState();
+  await rememberLastUser(email);
+  obDraft = { name };
+  authError = '';
+  screen = 'onboarding';
+  obStep = 0;
+  render();
+}
+
+async function handleLogin(){
+  const email = authDraft.email.trim().toLowerCase();
+  const pass = authDraft.password;
+  if(!email || !pass){ authError='Enter your email and password.'; render(); return; }
+  const users = await getUsers();
+  const rec = users[email];
+  if(!rec || rec.password !== pass){ authError='Email or password is incorrect.'; render(); return; }
+  const saved = await loadUserState(email);
+  currentUser = email;
+  state = saved ? Object.assign(freshState(''), saved) : freshState(rec.name);
+  await rememberLastUser(email);
+  obDraft = { name: state.profile.name };
+  authError = '';
+  screen = state.onboarded ? 'home' : 'onboarding';
+  render();
+}
+
+async function handleLogout(){
+  await forgetLastUser();
+  currentUser = null;
+  state = freshState('');
+  authDraft = { name:'', email:'', password:'' };
+  authError = '';
+  screen = 'landing';
+  render();
+}
+
+/* ---------------- RENDER SHELL ---------------- */
+
+function el(html){ const d=document.createElement('div'); d.innerHTML=html; return d.firstElementChild; }
+
+function render(){
+  const app = document.getElementById('app');
+  app.classList.toggle('onboarding-mode', screen==='onboarding' || screen==='landing' || screen==='auth' || screen==='loading');
+  let body = '';
+  if(screen==='loading') body = '';
+  else if(screen==='landing') body = renderLanding();
+  else if(screen==='auth') body = renderAuth();
+  else if(screen==='onboarding') body = renderOnboarding();
+  else if(screen==='home') body = shell(renderHome(), 'learn');
+  else if(screen==='lesson') body = renderLesson();
+  else if(screen==='practice') body = shell(renderPractice(), 'practice');
+  else if(screen==='progress') body = shell(renderProgress(), 'progress');
+  else if(screen==='profile') body = shell(renderProfile(), 'profile');
+  app.innerHTML = body;
+  attachHandlers();
+}
+
+function shell(inner, activeNav){
+  return `
+    <div class="sidebar">
+      <div class="brand">${LOGO}<span>Speakeng Studio</span></div>
+      <button data-nav="home" class="${activeNav==='learn'?'active':''}">📘 Learn</button>
+      <button data-nav="practice" class="${activeNav==='practice'?'active':''}">🎤 Speaking Lab</button>
+      <button data-nav="progress" class="${activeNav==='progress'?'active':''}">📈 Progress</button>
+      <button data-nav="profile" class="${activeNav==='profile'?'active':''}">👤 Profile</button>
+    </div>
+    <div class="main-col">${inner}</div>
+    <div class="side-panel">
+      ${sidePanelWidget()}
+    </div>
+    <div class="bottomnav"><div class="bottomnav-inner">
+      <button class="navbtn ${activeNav==='learn'?'active':''}" data-nav="home"><span class="ic">📘</span>Learn</button>
+      <button class="navbtn ${activeNav==='practice'?'active':''}" data-nav="practice"><span class="ic">🎤</span>Practice</button>
+      <button class="navbtn ${activeNav==='progress'?'active':''}" data-nav="progress"><span class="ic">📈</span>Progress</button>
+      <button class="navbtn ${activeNav==='profile'?'active':''}" data-nav="profile"><span class="ic">👤</span>Profile</button>
+    </div></div>
+  `;
+}
+
+function sidePanelWidget(){
+  const nextStage = STAGES.find(s => !state.completed[s.id]);
+  return `
+    <div class="card">
+      <div class="section-title" style="margin-top:0;">Today's mission</div>
+      <div style="font-size:13.5px; opacity:0.75; margin-bottom:10px;">Finish 1 stage to keep your streak</div>
+      <div class="pill streak" style="display:inline-flex;">🔥 ${state.streak} day streak</div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0;">Rewards</div>
+      <div class="stat-grid" style="margin:0;">
+        <div class="stat-card"><div class="n">${state.xp}</div><div class="l">XP</div></div>
+        <div class="stat-card"><div class="n">${state.coins}</div><div class="l">Coins</div></div>
+      </div>
+    </div>
+    ${nextStage ? `<div class="card"><div class="section-title" style="margin-top:0;">Up next</div><div style="font-weight:700;">${nextStage.icon} ${nextStage.title}</div></div>` : ''}
+  `;
+}
+
+/* ---------------- LANDING & AUTH ---------------- */
+
+function renderLanding(){
+  return `
+    <div class="ob-wrap" style="justify-content:center; text-align:center;">
+      <div>
+        <div class="ob-mascot">${MASCOT}</div>
+        <h1 class="brand-word">Speakeng Studio</h1>
+        <div class="brand-tag">मराठीतून शिका, इंग्रजीतून बोला</div>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="land-signup">Create free account</button>
+        <button class="btn btn-ghost" id="land-login">Log in</button>
+      </div>
+    </div>`;
+}
+
+function attachLandingHandlers(){
+  document.getElementById('land-signup').onclick = ()=>{ authMode='signup'; authError=''; screen='auth'; render(); };
+  document.getElementById('land-login').onclick = ()=>{ authMode='login'; authError=''; screen='auth'; render(); };
+}
+
+function renderAuth(){
+  const isSignup = authMode==='signup';
+  return `
+    <div class="ob-wrap">
+      <div>
+        <button class="btn btn-ghost" id="auth-back" style="width:auto; padding:6px 0; margin-bottom:8px;">← Back</button>
+        <div class="brand-word small">Speakeng Studio</div>
+        <div class="ob-card" style="margin-top:18px;">
+          <h2>${isSignup ? 'Create your account' : 'Welcome back'}</h2>
+          <div class="ob-mr">${isSignup ? 'खातं तयार करा' : 'पुन्हा स्वागत आहे'}</div>
+          ${isSignup ? `<input id="auth-name" class="ob-input" placeholder="Your name" value="${escapeHtml(authDraft.name)}" style="margin-bottom:10px;" />` : ''}
+          <input id="auth-email" class="ob-input" type="email" placeholder="Email" value="${escapeHtml(authDraft.email)}" style="margin-bottom:10px;" />
+          <input id="auth-password" class="ob-input" type="password" placeholder="Password" value="${escapeHtml(authDraft.password)}" />
+          ${authError ? `<div class="feedback-box retry" style="margin-top:12px;">${escapeHtml(authError)}</div>` : ''}
+          ${isSignup ? `<div class="hint" style="margin-top:12px;">This is a demo prototype — accounts are stored for testing only. Please don't use a real password.</div>` : ''}
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="auth-submit">${isSignup ? 'Create account' : 'Log in'}</button>
+        <button class="btn btn-ghost" id="auth-switch">${isSignup ? 'Already have an account? Log in' : "New here? Create an account"}</button>
+      </div>
+    </div>`;
+}
+
+function attachAuthHandlers(){
+  const nameInput = document.getElementById('auth-name');
+  if(nameInput) nameInput.oninput = e=> authDraft.name = e.target.value;
+  document.getElementById('auth-email').oninput = e=> authDraft.email = e.target.value;
+  document.getElementById('auth-password').oninput = e=> authDraft.password = e.target.value;
+  document.getElementById('auth-back').onclick = ()=>{ screen='landing'; render(); };
+  document.getElementById('auth-switch').onclick = ()=>{ authMode = authMode==='signup' ? 'login' : 'signup'; authError=''; render(); };
+  document.getElementById('auth-submit').onclick = ()=>{ authMode==='signup' ? handleSignup() : handleLogin(); };
+}
+
+/* ---------------- ONBOARDING ---------------- */
+
+function obSteps(){ return (obDraft.name && obDraft.name.trim()) ? ['lang','goal','level'] : ['name','lang','goal','level']; }
+
+function renderOnboarding(){
+  const OB_STEPS = obSteps();
+  const step = OB_STEPS[obStep];
+  let inner = '';
+  if(step==='name'){
+    inner = `
+      <div class="ob-mascot">${MASCOT}</div>
+      <div class="ob-card">
+        <h2>What should we call you?</h2>
+        <div class="ob-mr">तुमचं नाव काय आहे?</div>
+        <input id="ob-name" class="ob-input" placeholder="Your name" value="${obDraft.name||''}" />
+      </div>`;
+  } else if(step==='lang'){
+    inner = `
+      <div class="ob-card">
+        <h2>Which language should help you learn?</h2>
+        <div class="ob-mr">कोणती भाषा तुम्हाला शिकण्यासाठी मदत करेल?</div>
+        <div class="ob-options">
+          <button class="opt ${obDraft.langHelp==='mr'?'selected':''}" data-lang="mr">Marathi<span class="mr">मराठी</span></button>
+          <button class="opt ${obDraft.langHelp==='hi'?'selected':''}" data-lang="hi">Hindi<span class="mr">हिंदी</span></button>
+          <button class="opt ${obDraft.langHelp==='en'?'selected':''}" data-lang="en">English only<span class="mr">फक्त इंग्रजी</span></button>
+        </div>
+      </div>`;
+  } else if(step==='goal'){
+    inner = `
+      <div class="ob-card">
+        <h2>Why do you want to learn English?</h2>
+        <div class="ob-mr">इंग्रजी शिकण्याचे तुमचे कारण काय आहे?</div>
+        <div class="ob-options">
+          ${GOALS.map(g=>`<button class="opt ${obDraft.goal===g.id?'selected':''}" data-goal="${g.id}">${g.en}<span class="mr">${g.mr}</span></button>`).join('')}
+        </div>
+      </div>`;
+  } else if(step==='level'){
+    inner = `
+      <div class="ob-card">
+        <h2>What's your current level?</h2>
+        <div class="ob-mr">तुमची सध्याची पातळी काय आहे?</div>
+        <div class="ob-options">
+          ${LEVELS.map(l=>`<button class="opt ${obDraft.level===l.id?'selected':''}" data-level="${l.id}">${l.en}<span class="mr">${l.mr}</span></button>`).join('')}
+        </div>
+      </div>`;
+  }
+  const canNext = (step==='name' && (obDraft.name||'').trim().length>0)
+    || (step==='lang' && obDraft.langHelp)
+    || (step==='goal' && obDraft.goal)
+    || (step==='level' && obDraft.level);
+  return `
+    <div class="ob-wrap">
+      <div>
+        <div class="ob-progress">${OB_STEPS.map((s,i)=>`<i class="${i<=obStep?'done':''}"></i>`).join('')}</div>
+        ${inner}
+      </div>
+      <div>
+        <button id="ob-next" class="btn btn-primary" ${canNext?'':'disabled'}>${obStep===OB_STEPS.length-1?'Start learning · सुरू करा':'Continue'}</button>
+        ${obStep>0?'<button id="ob-back" class="btn btn-ghost">Back</button>':''}
+      </div>
+    </div>`;
+}
+
+function attachOnboardingHandlers(){
+  const OB_STEPS = obSteps();
+  const nameInput = document.getElementById('ob-name');
+  if(nameInput) nameInput.oninput = e=>{ obDraft.name = e.target.value; document.getElementById('ob-next').disabled = !e.target.value.trim(); };
+  document.querySelectorAll('[data-lang]').forEach(b=> b.onclick = ()=>{ obDraft.langHelp = b.dataset.lang; render(); });
+  document.querySelectorAll('[data-goal]').forEach(b=> b.onclick = ()=>{ obDraft.goal = b.dataset.goal; render(); });
+  document.querySelectorAll('[data-level]').forEach(b=> b.onclick = ()=>{ obDraft.level = b.dataset.level; render(); });
+  const back = document.getElementById('ob-back');
+  if(back) back.onclick = ()=>{ obStep--; render(); };
+  const next = document.getElementById('ob-next');
+  if(next) next.onclick = ()=>{
+    if(obStep < OB_STEPS.length-1){ obStep++; render(); }
+    else{
+      state.profile = { name: obDraft.name.trim(), langHelp: obDraft.langHelp, goal: obDraft.goal, level: obDraft.level };
+      state.onboarded = true;
+      saveState();
+      screen = 'home';
+      render();
+    }
+  };
+}
+
+/* ---------------- HOME ---------------- */
+
+function renderHome(){
+  const nextStage = STAGES.find(s => !state.completed[s.id]) || STAGES[STAGES.length-1];
+  return `
+    <div class="topbar">
+      <div class="pill streak">🔥 ${state.streak}</div>
+      <div class="pill coins">🪙 ${state.coins}</div>
+      <div class="pill">⭐ ${state.stars}</div>
+    </div>
+    <div class="screen">
+      <div class="greet">नमस्कार, ${escapeHtml(state.profile.name)} 👋</div>
+      <div class="greet-mr">आजचा सराव तयार आहे</div>
+
+      <div class="continue-card">
+        <div class="tag">CONTINUE LEARNING</div>
+        <h3>${nextStage.icon} ${nextStage.title}</h3>
+        <p>${nextStage.mr}</p>
+        <button data-open-stage="${nextStage.id}">Continue Journey</button>
+      </div>
+
+      <div class="section-title">First Words <span style="font-weight:600; opacity:0.5; font-size:12px;">पहिलं पाऊल</span></div>
+      <div class="world-map">
+        ${STAGES.map((s,i)=>{
+          const done = !!state.completed[s.id];
+          const unlocked = i===0 || !!state.completed[STAGES[i-1].id];
+          const status = done ? 'done' : (unlocked ? 'unlocked' : 'locked');
+          return `
+          <div class="stage-row">
+            <div class="stage-dot ${status}" ${status!=='locked'?`data-open-stage="${s.id}"`:''}>${status==='locked' ? '🔒' : s.icon}</div>
+            <div class="stage-info" ${status!=='locked'?`data-open-stage="${s.id}"`:''}>
+              <div class="t">${s.title}</div>
+              <div class="m">${s.mr}</div>
+            </div>
+            <div class="stage-stars">${done ? '⭐'.repeat(state.completed[s.id]) : ''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <button class="quick-speak" data-nav="practice">🎤</button>
+  `;
+}
+
+/* ---------------- LESSON ---------------- */
+
+function openStage(id){
+  activeStageId = id;
+  lessonStep = 0;
+  const stage = STAGES.find(s=>s.id===id);
+  arrangeBank = shuffle(stage.words.map((w,i)=>({w, i, used:false})));
+  arrangeAnswer = [];
+  speakResult = null;
+  screen = 'lesson';
+  render();
+}
+
+function renderLesson(){
+  const stage = STAGES.find(s=>s.id===activeStageId);
+  const totalSteps = 4;
+  const pct = Math.round((lessonStep/totalSteps)*100);
+  let body = '';
+
+  if(lessonStep===0){ // TEACH
+    body = `
+      <div class="lesson-card">
+        <div class="mr-line">${stage.teach.mr}</div>
+        <div class="en-line">${stage.teach.en}</div>
+        <button class="listen-btn" id="listen-btn">🔊 Listen · ऐका</button>
+        <div class="hint">छान! आता हे वाक्य नीट ऐकून पुढे जाऊया.</div>
+      </div>
+      <div style="padding:0 20px;"><button class="btn btn-primary" id="lesson-next">Continue</button></div>
+    `;
+  } else if(lessonStep===1){ // ARRANGE
+    body = `
+      <div class="lesson-card">
+        <div class="mr-line">शब्द योग्य क्रमाने लावा</div>
+        <div class="answer-slot" id="answer-slot">
+          ${arrangeAnswer.map(a=>`<div class="answer-chip">${a.w}</div>`).join('')}
+        </div>
+        <div class="word-bank">
+          ${arrangeBank.map((b,idx)=>`<button class="word-chip ${b.used?'used':''}" data-bank-idx="${idx}">${b.w}</button>`).join('')}
+        </div>
+      </div>
+      <div style="padding:0 20px; display:flex; gap:10px;">
+        <button class="btn btn-ghost" id="arrange-reset" style="width:auto; flex:0 0 auto; padding:16px;">↺</button>
+        <button class="btn btn-primary" id="arrange-check">Check</button>
+      </div>
+    `;
+  } else if(lessonStep===2){ // SPEAK
+    const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    body = `
+      <div class="lesson-card" style="text-align:center;">
+        <div class="mr-line">आता स्वतः बोलून पाहा</div>
+        <div class="en-line">${stage.teach.en}</div>
+        ${supportsSpeech ? `
+          <button class="mic-btn ${recognizing?'listening':''}" id="mic-btn">🎤</button>
+          <div style="font-size:12.5px; opacity:0.6;">${recognizing? 'ऐकत आहे... बोला' : 'Tap and speak · बोलण्यासाठी दाबा'}</div>
+        ` : `
+          <div class="hint">Your browser doesn't support the microphone here — type what you'd say instead.</div>
+        `}
+        <input class="type-fallback" id="type-fallback" placeholder="Or type the sentence here..." />
+        ${speakResult ? `<div class="feedback-box ${speakResult}">${speakResult==='good' ? '👏 छान! Great pronunciation!' : 'काही हरकत नाही, पुन्हा प्रयत्न करा · Try again'}</div>` : ''}
+      </div>
+      <div style="padding:0 20px;"><button class="btn btn-primary" id="speak-continue" ${speakResult?'':'disabled'}>Continue</button></div>
+    `;
+  } else if(lessonStep===3){ // REVIEW
+    body = `
+      <div class="lesson-card">
+        <div class="mr-line">${stage.mcq.mr}</div>
+        <div class="en-line" style="font-size:18px;">${stage.mcq.q}</div>
+        <div id="mcq-options">
+        ${stage.mcq.options.map((o,idx)=>`<button class="mcq-opt" data-mcq="${idx}">${o}</button>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="lesson-top">
+      <button class="close-x" id="lesson-close">✕</button>
+      <div class="lesson-bar"><i style="width:${pct}%"></i></div>
+    </div>
+    ${body}
+  `;
+}
+
+function renderCompletion(){
+  return `
+    <div class="lesson-top"><div></div></div>
+    <div class="complete-wrap">
+      ${MASCOT}
+      <h2 style="font-size:24px; margin-top:12px;">छान! तुम्ही पुढची पायरी पूर्ण केली.</h2>
+      <div class="stars-row">${'⭐'.repeat(lastEarned.stars)}${'☆'.repeat(3-lastEarned.stars)}</div>
+      <div class="reward-grid">
+        <div class="reward-chip"><div class="n">+${lastEarned.xp}</div><div class="l">XP</div></div>
+        <div class="reward-chip"><div class="n">+${lastEarned.coins}</div><div class="l">COINS</div></div>
+      </div>
+      <button class="btn btn-primary" id="complete-continue">Continue Journey</button>
+      <button class="btn btn-ghost" id="complete-retry">Practice Again</button>
+    </div>
+  `;
+}
+
+/* ---------------- PRACTICE (Speaking Lab / Boss dialogue demo) ---------------- */
+
+const DIALOGUE = [
+  {who:'Teacher', line:'Hello! What is your name?'},
+  {who:'You', line:'My name is ' + '____' + '.', isUser:true, expect:'my name is'},
+  {who:'Teacher', line:'Nice to meet you! How are you?'},
+  {who:'You', line:'I am fine, thank you.', isUser:true, expect:'i am fine'},
+];
+
+function renderPractice(){
+  return `
+    <div class="topbar"><div></div></div>
+    <div class="screen">
+      <h2 style="font-size:20px; margin-bottom:4px;">Speaking Challenge</h2>
+      <div class="greet-mr" style="margin-bottom:16px;">बोलण्याचा सराव करा — कोणताही दबाव नाही</div>
+      <div class="card">
+        ${DIALOGUE.map((d,i)=>`
+          <div style="margin-bottom:14px;">
+            <div style="font-size:11px; font-weight:800; opacity:0.5; margin-bottom:3px;">${d.who}</div>
+            <div style="font-weight:${d.isUser?800:600}; font-size:15px; ${d.isUser?'color:var(--coral);':''}">${d.line}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="hint">ही एक सराव संधी आहे. चुकलं तरी हरकत नाही — पुन्हा प्रयत्न करा.</div>
+      <button class="btn btn-primary" style="margin-top:16px;" id="practice-mic">🎤 Speak your line</button>
+      <div id="practice-feedback"></div>
+    </div>
+  `;
+}
+
+/* ---------------- PROGRESS ---------------- */
+
+function renderProgress(){
+  const totalStages = STAGES.length;
+  const doneCount = Object.keys(state.completed).length;
+  const badges = [
+    {id:'first', ic:'🥉', label:'First Lesson', unlocked: doneCount>=1},
+    {id:'streak3', ic:'🔥', label:'3-Day Streak', unlocked: state.streak>=3},
+    {id:'half', ic:'🌟', label:'Halfway There', unlocked: doneCount>=3},
+    {id:'world', ic:'🏆', label:'World Complete', unlocked: doneCount>=totalStages},
+  ];
+  const days = ['S','M','T','W','T','F','S'];
+  const today = new Date();
+  const weekCells = days.map((d,i)=>{
+    const dt = new Date(today); dt.setDate(today.getDate() - today.getDay() + i);
+    const key = dt.toISOString().slice(0,10);
+    return `<div class="week-day ${state.weekLog[key]?'done':''}">${d}</div>`;
+  }).join('');
+  return `
+    <div class="topbar"><div></div></div>
+    <div class="screen">
+      <h2 style="font-size:20px; margin-bottom:14px;">Your Progress</h2>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="n">${state.xp}</div><div class="l">Total XP</div></div>
+        <div class="stat-card"><div class="n">${state.streak}</div><div class="l">Day Streak</div></div>
+        <div class="stat-card"><div class="n">${doneCount}/${totalStages}</div><div class="l">Stages done</div></div>
+        <div class="stat-card"><div class="n">${state.coins}</div><div class="l">Coins</div></div>
+      </div>
+      <div class="section-title">This week</div>
+      <div class="week-row">${weekCells}</div>
+      <div class="section-title">Badges</div>
+      <div class="badge-grid">
+        ${badges.map(b=>`<div class="badge ${b.unlocked?'':'locked'}"><div class="ic">${b.ic}</div><div class="l">${b.label}</div></div>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* ---------------- PROFILE ---------------- */
+
+function renderProfile(){
+  return `
+    <div class="topbar"><div></div></div>
+    <div class="screen">
+      <h2 style="font-size:20px; margin-bottom:14px;">Profile</h2>
+      <div class="card">
+        <div style="font-weight:800; font-size:17px;">${escapeHtml(state.profile.name)}</div>
+        <div style="font-size:13px; opacity:0.6; margin-top:2px;">${escapeHtml(currentUser||'')}</div>
+        <div style="font-size:13px; opacity:0.6; margin-top:2px;">Level: ${state.profile.level} · Goal: ${state.profile.goal}</div>
+      </div>
+      <div class="card">
+        <div style="font-weight:700; margin-bottom:8px;">About this prototype</div>
+        <div class="empty-note">This is a working demo of Speakeng Studio. Speech recognition uses your browser's built-in engine (Chrome/Edge work best) and needs microphone permission. Demo accounts are for testing only.</div>
+      </div>
+      <button class="btn btn-ghost" id="reset-progress" style="color:#B5453A; opacity:1;">Reset all progress</button>
+      <button class="btn btn-ghost" id="do-logout">Log out</button>
+    </div>
+  `;
+}
+
+/* ---------------- HANDLERS ---------------- */
+
+function attachHandlers(){
+  if(screen==='landing'){ attachLandingHandlers(); return; }
+  if(screen==='auth'){ attachAuthHandlers(); return; }
+  if(screen==='onboarding'){ attachOnboardingHandlers(); return; }
+
+  document.querySelectorAll('[data-nav]').forEach(b=> b.onclick = ()=>{ screen=b.dataset.nav; render(); });
+  document.querySelectorAll('[data-open-stage]').forEach(b=> b.onclick = ()=> openStage(parseInt(b.dataset.openStage)));
+
+  if(screen==='lesson'){
+    const closeBtn = document.getElementById('lesson-close');
+    if(closeBtn) closeBtn.onclick = ()=>{ screen='home'; render(); };
+
+    if(lessonStep===4){ return attachCompletionHandlers(); }
+
+    const listenBtn = document.getElementById('listen-btn');
+    if(listenBtn) listenBtn.onclick = ()=> speak(STAGES.find(s=>s.id===activeStageId).teach.en);
+
+    const lessonNext = document.getElementById('lesson-next');
+    if(lessonNext) lessonNext.onclick = ()=>{ lessonStep=1; render(); };
+
+    document.querySelectorAll('[data-bank-idx]').forEach(b=> b.onclick = ()=>{
+      const idx = parseInt(b.dataset.bankIdx);
+      if(arrangeBank[idx].used) return;
+      arrangeBank[idx].used = true;
+      arrangeAnswer.push(arrangeBank[idx]);
+      render();
+      attachHandlers();
+    });
+    const resetBtn = document.getElementById('arrange-reset');
+    if(resetBtn) resetBtn.onclick = ()=>{
+      arrangeBank.forEach(b=>b.used=false);
+      arrangeAnswer = [];
+      render();
+    };
+    const checkBtn = document.getElementById('arrange-check');
+    if(checkBtn) checkBtn.onclick = ()=>{
+      lessonStep = 2;
+      speakResult = null;
+      render();
+    };
+
+    const micBtn = document.getElementById('mic-btn');
+    if(micBtn) micBtn.onclick = ()=> startRecognition(STAGES.find(s=>s.id===activeStageId).teach.en);
+    const typeInput = document.getElementById('type-fallback');
+    if(typeInput) typeInput.onkeydown = (e)=>{
+      if(e.key==='Enter') evaluateSpeech(e.target.value, STAGES.find(s=>s.id===activeStageId).teach.en);
+    };
+    const speakContinue = document.getElementById('speak-continue');
+    if(speakContinue) speakContinue.onclick = ()=>{ lessonStep=3; render(); };
+
+    document.querySelectorAll('[data-mcq]').forEach(b=> b.onclick = ()=>{
+      const stage = STAGES.find(s=>s.id===activeStageId);
+      const idx = parseInt(b.dataset.mcq);
+      document.querySelectorAll('[data-mcq]').forEach(x=>x.disabled=true);
+      if(idx===stage.mcq.correct){ b.classList.add('correct'); }
+      else{ b.classList.add('wrong'); document.querySelector(`[data-mcq="${stage.mcq.correct}"]`).classList.add('correct'); }
+      setTimeout(()=> finishStage(), 900);
+    });
+  }
+
+  if(screen==='practice'){
+    const micBtn = document.getElementById('practice-mic');
+    if(micBtn) micBtn.onclick = ()=>{
+      const fb = document.getElementById('practice-feedback');
+      if(window.SpeechRecognition || window.webkitSpeechRecognition){
+        const rec = new (window.SpeechRecognition||window.webkitSpeechRecognition)();
+        rec.lang='en-US';
+        micBtn.textContent = '🎙️ Listening...';
+        rec.onresult = (e)=>{
+          const heard = e.results[0][0].transcript;
+          fb.innerHTML = `<div class="feedback-box good">You said: "${escapeHtml(heard)}" — छान प्रयत्न! 👏</div>`;
+          micBtn.textContent = '🎤 Speak your line';
+        };
+        rec.onerror = ()=>{ fb.innerHTML = `<div class="feedback-box retry">Mic didn't catch that — try again.</div>`; micBtn.textContent='🎤 Speak your line'; };
+        rec.start();
+      } else {
+        fb.innerHTML = `<div class="feedback-box retry">Speech recognition isn't available in this browser.</div>`;
+      }
+    };
+  }
+
+  if(screen==='profile'){
+    const resetBtn = document.getElementById('reset-progress');
+    if(resetBtn) resetBtn.onclick = async ()=>{
+      if(confirm('Reset all progress? This cannot be undone.')){
+        const keepProfile = state.profile;
+        state = Object.assign(freshState(keepProfile.name), { onboarded:true, profile: keepProfile });
+        await saveState();
+        screen='home'; render();
+      }
+    };
+    const logoutBtn = document.getElementById('do-logout');
+    if(logoutBtn) logoutBtn.onclick = ()=> handleLogout();
+  }
+}
+
+function attachCompletionHandlers(){
+  const app = document.getElementById('app');
+  const target = app.querySelector('.main-col') || app;
+  target.innerHTML = renderCompletion();
+  document.getElementById('complete-continue').onclick = ()=>{ screen='home'; render(); };
+  document.getElementById('complete-retry').onclick = ()=> openStage(activeStageId);
+}
+
+/* ---------------- LOGIC ---------------- */
+
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.92;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+
+function startRecognition(target){
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!Rec) return;
+  const rec = new Rec();
+  rec.lang = 'en-US';
+  recognizing = true; render();
+  rec.onresult = (e)=>{ evaluateSpeech(e.results[0][0].transcript, target); };
+  rec.onerror = ()=>{ recognizing=false; speakResult='retry'; render(); };
+  rec.onend = ()=>{ recognizing=false; };
+  rec.start();
+}
+
+function normalize(s){ return s.toLowerCase().replace(/[^a-z ]/g,'').trim(); }
+
+function evaluateSpeech(heard, target){
+  recognizing = false;
+  const h = normalize(heard), t = normalize(target);
+  const hWords = new Set(h.split(' ').filter(Boolean));
+  const tWords = t.split(' ').filter(Boolean);
+  const matchCount = tWords.filter(w=>hWords.has(w)).length;
+  speakResult = (matchCount >= Math.ceil(tWords.length*0.5)) ? 'good' : 'retry';
+  render();
+}
+
+function finishStage(){
+  const stars = 3;
+  const xpGain = 20, coinGain = 5;
+  lastEarned = {xp:xpGain, stars, coins:coinGain};
+  state.completed[activeStageId] = stars;
+  state.xp += xpGain;
+  state.coins += coinGain;
+  state.stars += stars;
+
+  const today = todayStr();
+  if(state.lastPracticeDate !== today){
+    const y = new Date(); y.setDate(y.getDate()-1);
+    const yesterday = y.toISOString().slice(0,10);
+    state.streak = (state.lastPracticeDate === yesterday) ? state.streak + 1 : 1;
+    state.lastPracticeDate = today;
+  }
+  state.weekLog[today] = true;
+  saveState();
+  lessonStep = 4;
+  render();
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+boot();
+})();
+</script>
+</body>
+</html>
