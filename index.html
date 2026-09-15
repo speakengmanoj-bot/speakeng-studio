@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speakeng Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17233B;
+    --cream:#FFF8ED;
+    --mango:#FFB000;
+    --coral:#FF6B5E;
+    --teal:#36B8A5;
+    --mint:#D8F5E8;
+    --blue:#4D7CFE;
+    --violet:#8B6BFF;
+    --paper:#FFFFFF;
+    --line: rgba(23,35,59,0.10);
+    --shadow: 0 10px 30px rgba(23,35,59,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--cream);
+    color: var(--ink);
+    font-family:'Manrope', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  h1,h2,h3,.display{
+    font-family:'Baloo 2', 'Manrope', sans-serif;
+    margin:0;
+    color: var(--ink);
+    line-height:1.15;
+  }
+  button{ font-family: inherit; cursor:pointer; border:none; background:none; }
+  textarea{ font-family:inherit; }
+  .app{
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--cream);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom: 84px;
+  }
+  @media (min-width: 860px){
+    .app{
+      max-width: 1080px;
+      min-height: 100vh;
+      display:grid;
+      grid-template-columns: 220px 1fr 280px;
+      gap:0;
+      padding-bottom:0;
+    }
+    .app.onboarding-mode{ display:block; max-width:480px; }
+    .app.wide-mode{ grid-template-columns: 220px 1fr; }
+    .app.wide-mode .side-panel{ display:none !important; }
+    .sidebar{ display:flex !important; }
+    .bottomnav{ display:none !important; }
+    .main-col{ border-left:1px solid var(--line); border-right:1px solid var(--line); }
+    .side-panel{ display:flex !important; }
+  }
+  .sidebar{
+    display:none;
+    flex-direction:column;
+    padding:28px 18px;
+    gap:6px;
+  }
+  .sidebar .brand{ display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 10px;}
+  .sidebar .brand .mark{ width:34px;height:34px; }
+  .sidebar .brand span{ font-family:'Baloo 2'; font-weight:700; font-size:18px; }
+  .sidebar button{
+    text-align:left; padding:11px 14px; border-radius:14px; font-weight:700; font-size:14.5px;
+    color: var(--ink); opacity:0.55; display:flex; align-items:center; gap:10px;
+  }
+  .sidebar button.active{ background: var(--paper); opacity:1; box-shadow: var(--shadow); color:var(--coral); }
+  .side-panel{
+    display:none;
+    flex-direction:column;
+    padding:28px 20px;
+    gap:18px;
+  }
+  .main-col{ padding: 0; min-height:100vh; }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 20px 8px;
+  }
+  .pill{
+    display:flex; align-items:center; gap:6px;
+    background: var(--paper); border-radius:100px; padding:6px 12px;
+    font-weight:800; font-size:13.5px; box-shadow: var(--shadow);
+  }
+  .pill.streak{ color:#D9540A; }
+  .pill.coins{ color:#B8860B; }
+  .pill.role{ color:var(--violet); }
+
+  .screen{ padding: 4px 20px 20px; animation: fadein .35s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  /* ---------- Onboarding / Auth ---------- */
+  .ob-wrap{ min-height:100vh; display:flex; flex-direction:column; justify-content:space-between; padding:32px 24px; }
+  .ob-mascot{ text-align:center; margin: 10px 0 6px; }
+  .brand-word{ font-family:'Baloo 2'; font-weight:800; font-size:34px; color:var(--ink); margin: 6px 0 4px; }
+  .brand-word.small{ font-size:20px; margin:0; }
+  .brand-tag{ font-size:14px; color:#7a6a4a; font-weight:600; margin-bottom:6px; }
+  .ob-card h2{ font-size:24px; font-weight:700; margin-bottom:6px; }
+  .ob-mr{ color:#6B5B3A; font-size:15px; margin-bottom:22px; }
+  .ob-options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    background: var(--paper); border:2px solid transparent; border-radius:16px;
+    padding:15px 16px; font-weight:700; font-size:15px; text-align:left;
+    box-shadow: var(--shadow); transition: transform .12s ease, border-color .12s ease;
+  }
+  .opt .mr{ display:block; font-weight:500; font-size:12.5px; color:#7a6a4a; margin-top:2px; }
+  .opt:active{ transform: scale(0.98); }
+  .opt.selected{ border-color: var(--coral); background: #FFF0EE; }
+  .opt-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .ob-input{
+    width:100%; padding:15px 16px; border-radius:16px; border:2px solid var(--line);
+    font-size:16px; font-weight:600; font-family:inherit; background:var(--paper);
+  }
+  .ob-input:focus{ outline:none; border-color: var(--coral); }
+  .btn{
+    padding:16px 20px; border-radius:16px; font-weight:800; font-size:15.5px;
+    display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  }
+  .btn-primary{ background: var(--coral); color:white; box-shadow: 0 8px 20px rgba(255,107,94,0.35); }
+  .btn-primary:disabled{ opacity:0.35; }
+  .btn-primary:active{ transform: scale(0.98); }
+  .btn-ghost{ background: transparent; color: var(--ink); opacity:0.55; font-weight:700; }
+  .btn-sm{ padding:10px 14px; font-size:13px; width:auto; border-radius:12px; }
+  .btn-teal{ background: var(--teal); color:white; }
+  .btn-blue{ background: var(--blue); color:white; }
+  .ob-progress{ display:flex; gap:6px; margin-bottom:20px; }
+  .ob-progress i{ flex:1; height:5px; border-radius:4px; background: var(--line); }
+  .ob-progress i.done{ background: var(--coral); }
+
+  /* ---------- Home ---------- */
+  .greet{ font-size:22px; font-weight:700; margin:10px 0 2px; }
+  .greet-mr{ color:#7a6a4a; font-size:13.5px; margin-bottom:18px; }
+  .continue-card{
+    background: linear-gradient(135deg, var(--ink), #23345a);
+    border-radius:22px; padding:20px; color:white; position:relative; overflow:hidden; margin-bottom:18px;
+  }
+  .continue-card .tag{ font-size:12px; font-weight:700; color:var(--mango); margin-bottom:6px; }
+  .continue-card h3{ color:white; font-size:19px; margin-bottom:4px; }
+  .continue-card p{ margin:0 0 16px; font-size:13px; color:#C9D2E5; }
+  .continue-card button{
+    background: var(--mango); color:var(--ink); font-weight:800; padding:11px 18px; border-radius:100px; font-size:14px;
+  }
+  .section-title{ font-weight:800; font-size:15px; margin: 22px 0 12px; display:flex; align-items:center; justify-content:space-between; }
+  .revise-strip{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+  .revise-chip{ flex:0 0 auto; background:#FFF3DC; border-radius:14px; padding:10px 14px; font-weight:700; font-size:12.5px; color:#8a5a00; white-space:nowrap; }
+
+  .module-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .module-card{ background: var(--paper); border-radius:18px; padding:14px; box-shadow: var(--shadow); position:relative; text-align:left; }
+  .module-card.locked{ opacity:0.45; }
+  .module-card .mic{ font-size:24px; }
+  .module-card .mtag{ font-size:9.5px; font-weight:800; color:var(--coral); text-transform:uppercase; letter-spacing:.03em; margin-top:6px; }
+  .module-card .mtitle{ font-weight:800; font-size:13.5px; margin-top:2px; line-height:1.2; }
+  .module-card .mmeta{ font-size:11px; opacity:0.55; margin-top:6px; font-weight:700; }
+  .ring{ width:30px; height:30px; border-radius:50%; position:absolute; top:12px; right:12px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; }
+
+  .bottomnav{
+    position:fixed; bottom:0; left:0; right:0; background: var(--paper);
+    border-top:1px solid var(--line); display:flex; z-index:30;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  .app{ position:relative; }
+  .bottomnav-inner{ max-width:480px; margin:0 auto; display:flex; width:100%; }
+  .navbtn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0; font-size:10.5px; font-weight:700; opacity:0.45; }
+  .navbtn.active{ opacity:1; color:var(--coral); }
+  .navbtn .ic{ font-size:19px; }
+
+  /* ---------- Lesson ---------- */
+  .lesson-top{ display:flex; align-items:center; gap:12px; padding:16px 20px 6px; }
+  .close-x{ font-size:20px; opacity:0.5; }
+  .lesson-bar{ flex:1; height:10px; background: var(--line); border-radius:10px; overflow:hidden; }
+  .lesson-bar i{ display:block; height:100%; background: var(--teal); border-radius:10px; transition: width .3s ease; }
+  .lesson-card{ background: var(--paper); border-radius:22px; padding:24px 20px; margin:18px 20px; box-shadow: var(--shadow); }
+  .mr-line{ font-size:16px; color:#5a4a2a; margin-bottom:10px; font-weight:600; }
+  .en-line{ font-size:23px; font-weight:800; margin-bottom:16px; }
+  .listen-btn{ display:inline-flex; align-items:center; gap:8px; background: var(--mint); color:#116655; padding:10px 16px; border-radius:100px; font-weight:800; font-size:13.5px; }
+  .hint{ margin-top:16px; font-size:12.5px; color:#8a7a5a; background: #FFF3DC; padding:10px 12px; border-radius:12px; }
+  .word-bank{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; min-height:40px; }
+  .word-chip{ background: var(--paper); border:2px solid var(--line); border-radius:12px; padding:9px 14px; font-weight:700; font-size:14.5px; }
+  .word-chip.used{ opacity:0.25; pointer-events:none; }
+  .answer-slot{ display:flex; flex-wrap:wrap; gap:8px; min-height:44px; border-bottom:2px dashed var(--line); padding-bottom:14px; margin-bottom:16px; }
+  .answer-chip{ background: var(--mint); border-radius:12px; padding:9px 14px; font-weight:700; font-size:14.5px; }
+  .mic-btn{
+    width:84px; height:84px; border-radius:50%; background: var(--coral); color:white; font-size:30px;
+    display:flex; align-items:center; justify-content:center; margin: 8px auto 6px; box-shadow: 0 10px 24px rgba(255,107,94,0.35);
+  }
+  .mic-btn.listening{ animation: pulse 1.1s infinite; }
+  @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(255,107,94,0.5);} 70%{box-shadow:0 0 0 18px rgba(255,107,94,0);} 100%{box-shadow:0 0 0 0 rgba(255,107,94,0);} }
+  .feedback-box{ text-align:center; padding:14px; border-radius:16px; margin-top:14px; font-weight:700; font-size:14.5px; }
+  .feedback-box.good{ background: var(--mint); color:#116655; }
+  .feedback-box.retry{ background:#FFF0EE; color:#B5453A; }
+  .type-fallback{ width:100%; margin-top:14px; padding:13px 14px; border-radius:14px; border:2px solid var(--line); font-family:inherit; font-size:14.5px; }
+  .mcq-opt{ width:100%; text-align:left; background: var(--paper); border:2px solid var(--line); border-radius:14px; padding:13px 14px; font-weight:700; font-size:14.5px; margin-bottom:9px; }
+  .mcq-opt.correct{ border-color: var(--teal); background: var(--mint); }
+  .mcq-opt.wrong{ border-color: var(--coral); background:#FFF0EE; }
+  .vocab-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px; }
+  .vocab-item{ background:var(--mint); border-radius:12px; padding:10px; }
+  .vocab-item .en{ font-weight:800; font-size:13.5px; }
+  .vocab-item .mr{ font-size:11.5px; opacity:0.7; margin:0; }
+  .vocab-item .sp{ float:right; font-size:13px; }
+  .scene-emoji{ font-size:48px; text-align:center; margin-bottom:6px; letter-spacing:6px; }
+  .timer-num{ font-family:'Baloo 2'; font-size:40px; font-weight:800; text-align:center; margin:10px 0; }
+  .write-box{ width:100%; min-height:120px; border-radius:14px; border:2px solid var(--line); padding:14px; font-size:14.5px; margin-top:12px; }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .chip{ background:#FFF3DC; color:#8a5a00; font-weight:700; font-size:11.5px; padding:6px 10px; border-radius:100px; }
+  .dlg-line{ margin-bottom:12px; }
+  .dlg-who{ font-size:11px; font-weight:800; opacity:0.5; margin-bottom:3px; }
+  .dlg-txt{ font-weight:700; font-size:14.5px; }
+  .dlg-txt.user{ color:var(--coral); }
+
+  /* completion */
+  .complete-wrap{ text-align:center; padding: 40px 24px; }
+  .stars-row{ font-size:40px; margin: 18px 0 6px; letter-spacing:6px; }
+  .reward-grid{ display:flex; justify-content:center; gap:14px; margin:22px 0; flex-wrap:wrap; }
+  .reward-chip{ background: var(--paper); border-radius:16px; padding:14px 18px; box-shadow: var(--shadow); min-width:88px; }
+  .reward-chip .n{ font-weight:800; font-size:20px; }
+  .reward-chip .l{ font-size:11px; opacity:0.6; font-weight:700; }
+  .adapt-note{ font-size:12.5px; font-weight:700; color:var(--violet); background:#F1EDFF; padding:10px 14px; border-radius:12px; margin-top:10px; }
+
+  /* progress screen */
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+  .stat-card{ background: var(--paper); border-radius:18px; padding:16px; box-shadow: var(--shadow); }
+  .stat-card .n{ font-size:24px; font-weight:800; }
+  .stat-card .l{ font-size:12px; opacity:0.6; font-weight:700; }
+  .badge-grid{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+  .badge{ background: var(--paper); border-radius:16px; padding:14px; text-align:center; width:92px; box-shadow: var(--shadow); }
+  .badge.locked{ opacity:0.3; }
+  .badge .ic{ font-size:26px; }
+  .badge .l{ font-size:10.5px; font-weight:700; margin-top:4px; }
+  .week-row{ display:flex; gap:6px; margin-top:6px; }
+  .week-day{ flex:1; aspect-ratio:1; border-radius:10px; background: var(--paper); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; box-shadow: var(--shadow); }
+  .week-day.done{ background: var(--mango); color:white; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .bar-row .lbl{ width:120px; font-size:11.5px; font-weight:700; opacity:0.7; flex-shrink:0; }
+  .bar-track{ flex:1; height:10px; background:var(--line); border-radius:10px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--teal); border-radius:10px; }
+
+  .card{ background: var(--paper); border-radius:20px; padding:18px; box-shadow: var(--shadow); margin-bottom:14px; }
+  .empty-note{ font-size:13px; color:#8a7a5a; }
+  a.link{ color: var(--blue); font-weight:700; text-decoration:none; }
+  .row-item{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); }
+  .row-item:last-child{ border-bottom:none; }
+  .row-item .name{ font-weight:800; font-size:14px; }
+  .row-item .sub{ font-size:11.5px; opacity:0.55; font-weight:600; }
+  .rank-num{ width:26px; height:26px; border-radius:50%; background:var(--mint); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; margin-right:10px; }
+  .lb-row{ display:flex; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); }
+  .lb-row:last-child{ border-bottom:none; }
+  .alert-card{ border-radius:16px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .alert-card.inactivity{ background:#FFF3DC; }
+  .alert-card.struggle{ background:#FFF0EE; }
+  .alert-card .at{ font-weight:800; font-size:13px; }
+  .alert-card .am{ font-size:11.5px; opacity:0.65; font-weight:600; }
+  .tag-role{ display:inline-block; font-size:10px; font-weight:800; text-transform:uppercase; padding:3px 8px; border-radius:100px; background:var(--mint); color:#116655; letter-spacing:.03em; }
+  select.ob-input{ appearance:none; }
+  .small-note{ font-size:11.5px; opacity:0.55; margin-top:6px; font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = "https://fyrtemmbfrmibojkhcnf.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ5cnRlbW1iZnJtaWJvamtoY25mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0NDE2MTIsImV4cCI6MjEwNTAxNzYxMn0.UuCLeMvx54ZGUOWYROXuA7IH_loQ2Aq-TTBMKgdSL6M";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* =================================================================
+   CONTENT DATA
+================================================================= */
+
+const MASCOT = `<svg width="110" height="110" viewBox="0 0 120 120">
+  <circle cx="60" cy="60" r="52" fill="#FFB000" opacity="0.18"/>
+  <circle cx="60" cy="66" r="38" fill="#36B8A5"/>
+  <circle cx="46" cy="58" r="6" fill="#17233B"/>
+  <circle cx="74" cy="58" r="6" fill="#17233B"/>
+  <path d="M45 76 Q60 88 75 76" stroke="#17233B" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M40 34 Q60 12 80 34" stroke="#FF6B5E" stroke-width="8" fill="none" stroke-linecap="round"/>
+</svg>`;
+const LOGO = `<svg viewBox="0 0 40 40" class="mark"><circle cx="20" cy="20" r="20" fill="#36B8A5"/><circle cx="14" cy="18" r="2.6" fill="#17233B"/><circle cx="26" cy="18" r="2.6" fill="#17233B"/><path d="M12 25 Q20 32 28 25" stroke="#17233B" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+
+const ROLES = [
+  {id:'student', label:'Student', mr:'विद्यार्थी', icon:'🎓'},
+  {id:'mentor', label:'Mentor', mr:'मार्गदर्शक', icon:'🧑‍🏫'},
+  {id:'admin', label:'Admin', mr:'प्रशासक', icon:'🏛️'},
+  {id:'parent', label:'Parent', mr:'पालक', icon:'👪'},
+];
+const GOALS = [
+  {id:'job', en:'For work / job interviews', mr:'नोकरीसाठी'},
+  {id:'travel', en:'For travel', mr:'प्रवासासाठी'},
+  {id:'confidence', en:'To build confidence', mr:'आत्मविश्वासासाठी'},
+  {id:'daily', en:'For daily conversation', mr:'रोजच्या संभाषणासाठी'},
+];
+const DEPARTMENTS = ['General / Any','Mechanical','Computer Science / IT','Hospitality','Retail & Sales','Healthcare'];
+const LEVELS = ['Foundation','A1','A2','A3','A3+'];
+
+const MODULES = [
+  {key:'m1', title:'Vocabulary Builder', icon:'📚', tag:'M1'},
+  {key:'m2', title:'Grammar Builder', icon:'📝', tag:'M2'},
+  {key:'m3', title:'Listening & Pronunciation Lab', icon:'🎧', tag:'M3 · NEW'},
+  {key:'m4', title:'Picture & Video Description', icon:'🖼️', tag:'M4'},
+  {key:'m5', title:'Role Play', icon:'🎭', tag:'M5'},
+  {key:'m6', title:'Daily Speaking Challenge', icon:'🗣️', tag:'M6'},
+  {key:'m7', title:'Real-World Writing Practice', icon:'✉️', tag:'M7 · NEW'},
+  {key:'m8', title:'AI Interview & GD Capstone', icon:'🏆', tag:'M8 · NEW', lockLevel:2},
+];
+
+const COMMON_WORDS = [['hello','नमस्कार'],['thank you','धन्यवाद'],['please','कृपया'],['sorry','माफ करा'],['yes','हो'],['no','नाही'],['today','आज'],['tomorrow','उद्या'],['morning','सकाळ'],['evening','संध्याकाळ'],['water','पाणी'],['food','अन्न'],['work','काम'],['help','मदत'],['friend','मित्र'],['family','कुटुंब'],['time','वेळ'],['money','पैसे'],['phone','फोन'],['address','पत्ता'],['question','प्रश्न'],['answer','उत्तर'],['meeting','सभा'],['computer','संगणक']];
+const DEPT_WORDS = {
+  'General / Any': [['office','कार्यालय'],['manager','व्यवस्थापक'],['customer','ग्राहक'],['report','अहवाल'],['deadline','अंतिम मुदत'],['teamwork','सांघिक काम']],
+  'Mechanical': [['machine','यंत्र'],['engine','इंजिन'],['tool','उपकरण'],['gear','गिअर'],['pressure','दाब'],['maintenance','देखभाल']],
+  'Computer Science / IT': [['software','सॉफ्टवेअर'],['code','कोड'],['bug','त्रुटी'],['server','सर्व्हर'],['network','जाळे'],['database','माहिती संच']],
+  'Hospitality': [['guest','पाहुणा'],['reservation','आरक्षण'],['menu','मेनू'],['checkout','चेकआउट'],['housekeeping','स्वच्छता विभाग'],['reception','स्वागत कक्ष']],
+  'Retail & Sales': [['discount','सवलत'],['invoice','बीजक'],['stock','साठा'],['billing','देयक'],['target','लक्ष्य'],['customer','ग्राहक']],
+  'Healthcare': [['patient','रुग्ण'],['nurse','परिचारिका'],['medicine','औषध'],['appointment','भेटीची वेळ'],['symptom','लक्षण'],['treatment','उपचार']],
+};
+function getVocabDay(index, dept){
+  const common = COMMON_WORDS, dw = DEPT_WORDS[dept] || DEPT_WORDS['General / Any'];
+  const cs = (index*6) % common.length, ds = (index*4) % dw.length;
+  const c = [0,1,2,3,4,5].map(i=>common[(cs+i)%common.length]);
+  const d = [0,1,2,3].map(i=>dw[(ds+i)%dw.length]);
+  return [...c, ...d];
+}
+
+const READING_ITEMS = [
+  {line:'Good morning! How was your journey today?', q:'This greeting is used —', options:['In the morning','At night','While eating'], correct:0},
+  {line:'Could you please send me the report by evening?', q:'What is being requested?', options:['A report','A meal','A ticket'], correct:0},
+  {line:'I am sorry, I will be five minutes late.', q:'What does the speaker say?', options:['They are late','They are happy','They are hungry'], correct:0},
+  {line:"Let's schedule a meeting for tomorrow.", q:'When is the meeting?', options:['Tomorrow','Today','Yesterday'], correct:0},
+  {line:'Can I get you some water?', q:'What is being offered?', options:['Water','Tea','Food'], correct:0},
+  {line:'Thank you for your help with the machine.', q:'What are they thanking for?', options:['Help','Money','Food'], correct:0},
+  {line:'Please take a short break before lunch.', q:'What should happen before lunch?', options:['A break','A meeting','A call'], correct:0},
+  {line:'The customer asked about the discount.', q:'Who asked the question?', options:['The customer','The manager','The nurse'], correct:0},
+  {line:'My phone number is on the invoice.', q:'Where is the phone number?', options:['On the invoice','On the menu','On the ticket'], correct:0},
+  {line:'We need to check the network connection.', q:'What needs checking?', options:['The network','The weather','The food'], correct:0},
+];
+
+const GRAMMAR_ITEMS = [
+  {level:'Foundation', mr:'भेटल्यावर आपण असं म्हणतो —', en:'Hello, how are you?', words:['Hello',',','how','are','you','?'], mcq:{q:'When do you say this?', options:['When you meet someone','When you say goodbye','When you are angry'], correct:0}},
+  {level:'Foundation', mr:'स्वतःची ओळख करून देताना —', en:'My name is Amol.', words:['My','name','is','Amol','.'], mcq:{q:'Which word means "नाव" (name)?', options:['name','is','my'], correct:0}},
+  {level:'A1', mr:'वय सांगताना —', en:'I am twenty years old.', words:['I','am','twenty','years','old','.'], mcq:{q:"This sentence tells us the person's —", options:['age','name','address'], correct:0}},
+  {level:'A1', mr:'कुटुंबाची ओळख करून देताना —', en:'This is my mother.', words:['This','is','my','mother','.'], mcq:{q:'"Mother" means —', options:['आई','वडील','भाऊ'], correct:0}},
+  {level:'A1', mr:'वस्तू दाखवताना —', en:'This is my bag.', words:['This','is','my','bag','.'], mcq:{q:'Which word means "पिशवी" (bag)?', options:['bag','this','my'], correct:0}},
+  {level:'A2', mr:'सध्या चालू असलेली क्रिया —', en:'I am working on the report.', words:['I','am','working','on','the','report','.'], mcq:{q:'This shows an action happening —', options:['now','yesterday','next year'], correct:0}},
+  {level:'A2', mr:'भूतकाळातील क्रिया —', en:'She finished the work yesterday.', words:['She','finished','the','work','yesterday','.'], mcq:{q:'When did she finish?', options:['Yesterday','Today','Tomorrow'], correct:0}},
+  {level:'A3', mr:'नम्रपणे विनंती करताना —', en:'Could you please repeat that?', words:['Could','you','please','repeat','that','?'], mcq:{q:'This sentence is used to —', options:['Ask politely','Give an order','Say goodbye'], correct:0}},
+  {level:'A3', mr:'प्रश्न विचारताना —', en:'Where is the nearest bus stop?', words:['Where','is','the','nearest','bus','stop','?'], mcq:{q:'This sentence is a —', options:['Question','Statement','Order'], correct:0}},
+  {level:'A3+', mr:'जोडशब्द वापरून जटिल वाक्य —', en:'Although it was raining, we finished the site visit.', words:['Although','it','was','raining',',','we','finished','the','site','visit','.'], mcq:{q:'"Although" is used to show —', options:['A contrast','A reason','A time'], correct:0}},
+];
+
+const PRON_ITEMS = [
+  {sound:'v / w', sentence:'The van drove through the water.', tip:'Bite your lower lip gently for V; round your lips for W.', keywords:['van','water']},
+  {sound:'v / w', sentence:'We visited the village in November.', tip:'Keep your teeth off your lip for W.', keywords:['visited','village']},
+  {sound:'th', sentence:'I think this is the third time.', tip:'Put your tongue between your teeth for TH.', keywords:['think','third']},
+  {sound:'th', sentence:'My mother and father are here.', tip:'Voiced TH — let your throat buzz.', keywords:['mother','father']},
+  {sound:'r / l', sentence:'Please arrive before the lorry leaves.', tip:'Curl your tongue back for R; touch the roof of your mouth for L.', keywords:['arrive','lorry']},
+  {sound:'s / sh', sentence:'She sells seashells near the shore.', tip:'Round your lips more for SH than S.', keywords:['sells','shore']},
+  {sound:'v / w', sentence:'Vijay wants to watch the video.', tip:'Alternate V and W carefully.', keywords:['wants','video']},
+  {sound:'th', sentence:'Three thin thieves thought thoroughly.', tip:'Tongue-tip practice for TH.', keywords:['three','thought']},
+];
+
+const PICTURE_ITEMS = [
+  {scene:'🏢 👨‍💼 📊', label:'Office meeting', starter:'In this picture, I can see...', keywords:['office','meeting','manager','desk','computer','people','work']},
+  {scene:'🍽️ 👩‍🍳 🥘', label:'Kitchen / restaurant', starter:'There is a...', keywords:['kitchen','cook','food','plate','chef','restaurant']},
+  {scene:'🏗️ 👷 🧱', label:'Construction site', starter:'I can see a...', keywords:['site','worker','building','construction','helmet','bricks']},
+  {scene:'🛒 👩‍👧 🏬', label:'Shopping mall', starter:'This picture shows...', keywords:['shop','mall','customer','shopping','bag','store']},
+  {scene:'🏥 👩‍⚕️ 🤒', label:'Hospital visit', starter:'In the picture...', keywords:['hospital','doctor','patient','nurse','medicine','clinic']},
+  {scene:'💻 🎓 📖', label:'Online class', starter:'I can see...', keywords:['student','laptop','class','study','learning','screen']},
+];
+
+const SCENARIOS = [
+  {title:'Canteen', turns:[
+    {who:'Partner', line:'What would you like to eat today?'},
+    {who:'You', isUser:true, hint:'Say what food you want', keywords:['want','like','please','have']},
+    {who:'Partner', line:'Sure, anything to drink?'},
+    {who:'You', isUser:true, hint:'Ask for a drink', keywords:['water','tea','juice','please']},
+  ]},
+  {title:'Shop', turns:[
+    {who:'Shopkeeper', line:'How can I help you today?'},
+    {who:'You', isUser:true, hint:'Ask for an item and its price', keywords:['price','how much','looking']},
+    {who:'Shopkeeper', line:'That will be fine — anything else?'},
+    {who:'You', isUser:true, hint:'Politely finish or ask more', keywords:['no','thank you','also']},
+  ]},
+  {title:'Classroom', turns:[
+    {who:'Teacher', line:'Good morning class, any questions from yesterday?'},
+    {who:'You', isUser:true, hint:'Ask a question or say you have none', keywords:['question','understand','yesterday']},
+    {who:'Teacher', line:"Great, let's continue then."},
+    {who:'You', isUser:true, hint:'Acknowledge', keywords:['okay','thank you','sure']},
+  ]},
+  {title:'Interview', turns:[
+    {who:'Interviewer', line:'Tell me about yourself.'},
+    {who:'You', isUser:true, hint:'Share your name, background and skills', keywords:['name','experience','skills','work']},
+    {who:'Interviewer', line:'Why should we hire you?'},
+    {who:'You', isUser:true, hint:'Talk about your strengths', keywords:['because','can','good','skills','hardworking']},
+  ]},
+];
+
+const TOPIC_BANK = ['My Family','My City','My Favourite Festival','A Memorable Day','My Dream Job','Technology in My Life','My Daily Routine','An Important Person in My Life','My Hobbies','A Problem I Solved','My Strengths','My Goals for Next Year'];
+
+const WRITING_PROMPTS = [
+  {prompt:'Write a short email to your manager asking for one day of leave.', words:['leave','manager','please','kindly']},
+  {prompt:'Write a WhatsApp message to a friend inviting them to your birthday.', words:['birthday','come','party']},
+  {prompt:"Write a note to a customer confirming their order.", words:['order','confirm','thank you']},
+  {prompt:"Write an email asking your teacher a doubt about today's class.", words:['doubt','class','please','explain']},
+  {prompt:'Write a message telling your team you will be late today.', words:['late','sorry','today']},
+  {prompt:'Write a short message thanking a colleague for their help.', words:['thank','help']},
+  {prompt:'Write an email requesting a meeting with the HR department.', words:['meeting','request','hr']},
+  {prompt:'Write a message to a shopkeeper asking if an item is in stock.', words:['stock','available','please']},
+];
+
+const INTERVIEW_QUESTIONS = ['Tell me about yourself.','What are your strengths?','What are your weaknesses?','Why do you want this job?','Describe a challenge you solved.','Where do you see yourself in five years?','How do you handle pressure?','Do you have any questions for us?'];
+const GD_TOPICS = [
+  {topic:'Should mobile phones be allowed in the workplace?', views:['Point A: Phones help with quick communication and emergencies.','Point B: Phones can be a distraction and reduce productivity.']},
+  {topic:'Is online learning better than classroom learning?', views:['Point A: Online learning is flexible and accessible.','Point B: Classroom learning gives better face-to-face practice.']},
+  {topic:'Should students get more practical training?', views:['Point A: Practical skills help get jobs faster.','Point B: Theory builds the foundation for practical skills.']},
+  {topic:'Is teamwork more important than individual work?', views:['Point A: Teamwork solves bigger problems together.','Point B: Individual focus builds deep expertise.']},
+  {topic:'Should companies allow work from home?', views:['Point A: It saves commute time and improves balance.','Point B: Office work improves collaboration and mentoring.']},
+];
+
+const DIAGNOSTIC = {
+  vocab: [
+    {en:'hello', options:['नमस्कार','पाणी','काम'], correct:0},
+    {en:'thank you', options:['माफ करा','धन्यवाद','मित्र'], correct:1},
+    {en:'water', options:['अन्न','पाणी','वेळ'], correct:1},
+    {en:'family', options:['कुटुंब','पैसे','प्रश्न'], correct:0},
+    {en:'meeting', options:['सभा','फोन','उत्तर'], correct:0},
+  ],
+  listen: {sentence:'Please close the door before you leave.', q:'What should you do before leaving?', options:['Close the door','Open the window','Turn on the light'], correct:0},
+  speak: {target:'My name is Amol and I am ready to learn.'},
+};
+
+const BADGE_DEFS = [
+  {key:'first', ic:'🥉', label:'First Lesson'},
+  {key:'streak3', ic:'🔥', label:'3-Day Streak'},
+  {key:'streak7', ic:'🌟', label:'7-Day Streak'},
+  {key:'allmods', ic:'🗺️', label:'Tried Every Module'},
+  {key:'writer', ic:'✍️', label:'5 Writings Done'},
+  {key:'speaker', ic:'🎙️', label:'5 Speeches Given'},
+  {key:'capstone', ic:'🏆', label:'Capstone Complete'},
+];
+
+/* =================================================================
+   STATE
+================================================================= */
+let session = null;
+let profile = null;          // row from public.profiles
+let screen = 'loading';
+let navKey = '';
+let authMode = 'signup';
+let authError = '';
+let authDraft = { name:'', email:'', password:'', role:'student' };
+let signupPending = false;
+
+let obStep = 0;
+let obDraft = {};
+let diag = { step:0, vocabAnswers:[], listenAnswer:null, speakResult:null, speakTranscript:'' };
+
+let myProgress = [];         // module_progress rows
+let myActivity = [];         // daily_activity rows
+let myBadges = [];           // badges rows
+
+let activeModuleKey = null;
+let lesson = {};             // per-module transient lesson state
+let recognizing = false;
+let lastEarned = { xp:0, stars:0, coins:0, adaptNote:'' };
+
+let mentorStudents = [];
+let mentorSelected = null;
+let noteDraft = '';
+
+let adminCohorts = [];
+let adminStudents = [];
+let manageDraft = { cohortName:'', mentorEmail:'', studentEmail:'', parentEmail:'', linkStudentEmail:'' };
+
+let parentChildren = [];
+let parentDigests = {};
+
+let leaderboard = [];
+
+/* =================================================================
+   HELPERS
+================================================================= */
+function el(html){ const d=document.createElement('div'); d.innerHTML=html; return d.firstElementChild; }
+function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function normalize(s){ return (s||'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim(); }
+function wordMatchScore(heard, target){
+  const h = new Set(normalize(heard).split(' ').filter(Boolean));
+  const t = normalize(target).split(' ').filter(Boolean);
+  if(!t.length) return 0;
+  const hit = t.filter(w=>h.has(w)).length;
+  return Math.round((hit/t.length)*100);
+}
+function keywordScore(heard, keywords){
+  const h = normalize(heard);
+  if(!keywords || !keywords.length) return h.length>3 ? 70 : 0;
+  const hit = keywords.filter(k=>h.includes(normalize(k))).length;
+  return Math.round((hit/keywords.length)*100);
+}
+function countFillers(text){
+  const h = ' ' + normalize(text) + ' ';
+  const fillers = ['um','uh','like','you know','so','actually'];
+  return fillers.reduce((n,f)=> n + (h.split(' '+f+' ').length-1), 0);
+}
+function wpm(text, seconds){
+  const words = normalize(text).split(' ').filter(Boolean).length;
+  if(!seconds) return 0;
+  return Math.round(words / (seconds/60));
+}
+function writingScore(text, requiredWords){
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  let score = 0;
+  if(words.length>=20) score+=30; else score += Math.round((words.length/20)*30);
+  if(/^[A-Z]/.test(text.trim())) score+=10;
+  if(/[.!?]\s*$/.test(text.trim())) score+=10;
+  const h = normalize(text);
+  const hits = (requiredWords||[]).filter(w=>h.includes(normalize(w))).length;
+  score += Math.round((hits/Math.max(1,(requiredWords||[]).length))*50);
+  return Math.min(100, score);
+}
+function speak(text, rate){
+  if(!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate = rate || 0.92;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+function levelIndex(lvl){ return Math.max(0, LEVELS.indexOf(lvl||'Foundation')); }
+
+/* =================================================================
+   DATA LAYER (Supabase)
+================================================================= */
+async function fetchProfile(id){
+  const { data } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+  return data;
+}
+async function updateProfile(fields){
+  const { data, error } = await supabase.from('profiles').update(fields).eq('id', profile.id).select().maybeSingle();
+  if(!error && data) profile = data;
+  return { data, error };
+}
+async function loadStudentData(){
+  const [{data:p}, {data:a}, {data:b}] = await Promise.all([
+    supabase.from('module_progress').select('*').eq('student_id', profile.id).order('completed_at', {ascending:false}).limit(200),
+    supabase.from('daily_activity').select('*').eq('student_id', profile.id).order('activity_date', {ascending:false}).limit(60),
+    supabase.from('badges').select('*').eq('student_id', profile.id),
+  ]);
+  myProgress = p || []; myActivity = a || []; myBadges = b || [];
+}
+function lastAttemptFor(moduleKey){ return myProgress.find(r=>r.module_key===moduleKey) || null; }
+function attemptCount(moduleKey){ return myProgress.filter(r=>r.module_key===moduleKey).length; }
+
+async function saveAttempt({moduleKey, itemIndex, score, xp, stars, seconds, fillers, meta}){
+  await supabase.from('module_progress').insert({
+    student_id: profile.id, module_key: moduleKey, item_index: itemIndex,
+    score, xp_earned: xp, stars, speaking_seconds: seconds||0, filler_words: fillers||0, meta: meta||{}
+  });
+  const today = todayStr();
+  const { data: existing } = await supabase.from('daily_activity').select('*').eq('student_id', profile.id).eq('activity_date', today).maybeSingle();
+  if(existing){
+    const touched = new Set(existing.modules_touched||[]); touched.add(moduleKey);
+    await supabase.from('daily_activity').update({
+      speaking_seconds: existing.speaking_seconds + (seconds||0),
+      xp_earned: existing.xp_earned + xp,
+      modules_touched: Array.from(touched)
+    }).eq('id', existing.id);
+  } else {
+    await supabase.from('daily_activity').insert({ student_id: profile.id, activity_date: today, speaking_seconds: seconds||0, xp_earned: xp, modules_touched:[moduleKey] });
+  }
+  let newStreak = profile.streak;
+  if(profile.last_practice_date !== today){
+    const y = new Date(); y.setDate(y.getDate()-1);
+    const yesterday = y.toISOString().slice(0,10);
+    newStreak = (profile.last_practice_date === yesterday) ? profile.streak + 1 : 1;
+  }
+  await updateProfile({
+    xp: profile.xp + xp, coins: profile.coins + Math.round(xp/4), stars: profile.stars + stars,
+    streak: newStreak, last_practice_date: today
+  });
+  await checkAndAwardBadges();
+  await loadStudentData();
+}
+async function checkAndAwardBadges(){
+  const have = new Set(myBadges.map(b=>b.badge_key));
+  const [{data:allProg}] = await Promise.all([ supabase.from('module_progress').select('module_key,completed_at').eq('student_id', profile.id) ]);
+  const rows = allProg || [];
+  const toAward = [];
+  if(rows.length>=1 && !have.has('first')) toAward.push('first');
+  if(profile.streak>=3 && !have.has('streak3')) toAward.push('streak3');
+  if(profile.streak>=7 && !have.has('streak7')) toAward.push('streak7');
+  if(new Set(rows.map(r=>r.module_key)).size>=8 && !have.has('allmods')) toAward.push('allmods');
+  if(rows.filter(r=>r.module_key==='m7').length>=5 && !have.has('writer')) toAward.push('writer');
+  if(rows.filter(r=>r.module_key==='m6').length>=5 && !have.has('speaker')) toAward.push('speaker');
+  if(rows.filter(r=>r.module_key==='m8').length>=1 && !have.has('capstone')) toAward.push('capstone');
+  for(const key of toAward){
+    await supabase.from('badges').insert({ student_id: profile.id, badge_key: key }).select();
+  }
+}
+async function updateReadiness(){
+  const { data } = await supabase.from('module_progress').select('score').eq('student_id', profile.id).order('completed_at', {ascending:false}).limit(20);
+  if(data && data.length){
+    const avg = Math.round(data.reduce((s,r)=>s+r.score,0)/data.length);
+    await updateProfile({ readiness_score: avg });
+  }
+}
+async function loadLeaderboard(){
+  if(!profile.cohort_id){ leaderboard = []; return; }
+  const { data } = await supabase.from('profiles').select('id,name,xp,streak').eq('role','student').eq('cohort_id', profile.cohort_id).order('xp', {ascending:false}).limit(20);
+  leaderboard = data || [];
+}
+async function loadMentorData(){
+  const { data } = await supabase.from('profiles').select('*').eq('mentor_id', profile.id).eq('role','student');
+  mentorStudents = data || [];
+  for(const s of mentorStudents){
+    const [{data:act}, {data:prog}] = await Promise.all([
+      supabase.from('daily_activity').select('activity_date').eq('student_id', s.id).order('activity_date',{ascending:false}).limit(1),
+      supabase.from('module_progress').select('score').eq('student_id', s.id).order('completed_at',{ascending:false}).limit(5),
+    ]);
+    s._lastActive = act && act[0] ? act[0].activity_date : null;
+    s._avgScore = prog && prog.length ? Math.round(prog.reduce((a,r)=>a+r.score,0)/prog.length) : null;
+    const daysSince = s._lastActive ? Math.floor((Date.now() - new Date(s._lastActive).getTime())/86400000) : 999;
+    s._alerts = [];
+    if(daysSince>=3) s._alerts.push({type:'inactivity', msg: s._lastActive ? `Inactive for ${daysSince} days` : 'No activity yet'});
+    if(s._avgScore!==null && s._avgScore<60) s._alerts.push({type:'struggle', msg:`Recent average score ${s._avgScore}%`});
+  }
+}
+async function loadAdminData(){
+  const [{data:cohorts}, {data:students}] = await Promise.all([
+    supabase.from('cohorts').select('*'),
+    supabase.from('profiles').select('*').eq('role','student'),
+  ]);
+  adminCohorts = cohorts || [];
+  adminStudents = students || [];
+  for(const s of adminStudents){
+    const [{data:act}, {data:prog}] = await Promise.all([
+      supabase.from('daily_activity').select('activity_date').eq('student_id', s.id).order('activity_date',{ascending:false}).limit(1),
+      supabase.from('module_progress').select('score,module_key').eq('student_id', s.id).order('completed_at',{ascending:false}).limit(5),
+    ]);
+    s._lastActive = act && act[0] ? act[0].activity_date : null;
+    s._avgScore = prog && prog.length ? Math.round(prog.reduce((a,r)=>a+r.score,0)/prog.length) : null;
+    const daysSince = s._lastActive ? Math.floor((Date.now() - new Date(s._lastActive).getTime())/86400000) : 999;
+    s._atRisk = daysSince>=3 || (s._avgScore!==null && s._avgScore<60);
+  }
+  adminCohorts.forEach(c=>{
+    const in_c = adminStudents.filter(s=>s.cohort_id===c.id);
+    c._count = in_c.length;
+    c._avgXp = in_c.length ? Math.round(in_c.reduce((a,s)=>a+s.xp,0)/in_c.length) : 0;
+  });
+}
+async function loadParentData(){
+  const { data: links } = await supabase.from('parent_links').select('student_id').eq('parent_id', profile.id);
+  const ids = (links||[]).map(l=>l.student_id);
+  if(!ids.length){ parentChildren = []; return; }
+  const { data: kids } = await supabase.from('profiles').select('*').in('id', ids);
+  parentChildren = kids || [];
+  const since = new Date(); since.setDate(since.getDate()-7);
+  const sinceStr = since.toISOString().slice(0,10);
+  for(const kid of parentChildren){
+    const [{data:acts}, {data:badges}] = await Promise.all([
+      supabase.from('daily_activity').select('*').eq('student_id', kid.id).gte('activity_date', sinceStr),
+      supabase.from('badges').select('*').eq('student_id', kid.id).gte('earned_at', since.toISOString()),
+    ]);
+    const a = acts || [];
+    parentDigests[kid.id] = {
+      minutes: Math.round(a.reduce((s,r)=>s+r.speaking_seconds,0)/60),
+      xp: a.reduce((s,r)=>s+r.xp_earned,0),
+      daysActive: a.length,
+      modules: new Set(a.flatMap(r=>r.modules_touched||[])).size,
+      newBadges: badges || [],
+    };
+  }
+}
+
+/* =================================================================
+   ROUTER / RENDER SHELL
+================================================================= */
+async function boot(){
+  const { data: { session: s } } = await supabase.auth.getSession();
+  session = s;
+  supabase.auth.onAuthStateChange((_event, s2)=>{ session = s2; });
+  if(session){
+    profile = await fetchProfile(session.user.id);
+    if(profile) await routeAfterAuth();
+    else { screen='landing'; render(); }
+  } else {
+    screen = 'landing'; render();
+  }
+}
+async function routeAfterAuth(){
+  if(profile.role==='student'){
+    if(!profile.onboarded){ screen='onboarding'; obStep=0; obDraft={ name: profile.name||'' }; render(); return; }
+    await loadStudentData();
+    screen='home'; render();
+  } else if(profile.role==='mentor'){
+    await loadMentorData(); screen='mentor'; render();
+  } else if(profile.role==='admin'){
+    await loadAdminData(); screen='admin'; render();
+  } else if(profile.role==='parent'){
+    await loadParentData(); screen='parent'; render();
+  }
+}
+
+function render(){
+  const app = document.getElementById('app');
+  const chromeless = ['loading','landing','auth','onboarding','diagnostic','lesson','emailcheck'].includes(screen);
+  app.classList.toggle('onboarding-mode', chromeless);
+  app.classList.toggle('wide-mode', profile && profile.role!=='student');
+  let body = '';
+  if(screen==='loading') body = '';
+  else if(screen==='landing') body = renderLanding();
+  else if(screen==='auth') body = renderAuth();
+  else if(screen==='emailcheck') body = renderEmailCheck();
+  else if(screen==='onboarding') body = renderOnboarding();
+  else if(screen==='diagnostic') body = renderDiagnostic();
+  else if(screen==='home') body = shell(renderHome(), 'home');
+  else if(screen==='lesson') body = renderLesson();
+  else if(screen==='leaderboard') body = shell(renderLeaderboard(), 'leaderboard');
+  else if(screen==='progress') body = shell(renderProgress(), 'progress');
+  else if(screen==='profile') body = shell(renderProfile(), 'profile');
+  else if(screen==='mentor') body = shell(renderMentor(), 'mentor');
+  else if(screen==='admin') body = shell(renderAdmin(), 'admin');
+  else if(screen==='adminManage') body = shell(renderAdminManage(), 'adminManage');
+  else if(screen==='parent') body = shell(renderParent(), 'parent');
+  app.innerHTML = body;
+  attachHandlers();
+}
+
+function navSetFor(role){
+  if(role==='student') return [{k:'home',l:'Learn',i:'📘'},{k:'leaderboard',l:'Ranks',i:'🏅'},{k:'progress',l:'Progress',i:'📈'},{k:'profile',l:'Profile',i:'👤'}];
+  if(role==='mentor') return [{k:'mentor',l:'Dashboard',i:'🧑‍🏫'},{k:'profile',l:'Profile',i:'👤'}];
+  if(role==='admin') return [{k:'admin',l:'Overview',i:'🏛️'},{k:'adminManage',l:'Manage',i:'⚙️'},{k:'profile',l:'Profile',i:'👤'}];
+  if(role==='parent') return [{k:'parent',l:'Digest',i:'📨'},{k:'profile',l:'Profile',i:'👤'}];
+  return [];
+}
+function shell(inner, activeNav){
+  const items = navSetFor(profile.role);
+  return `
+    <div class="sidebar">
+      <div class="brand">${LOGO}<span>Speakeng Studio</span></div>
+      ${items.map(it=>`<button data-nav="${it.k}" class="${activeNav===it.k?'active':''}">${it.i} ${it.l}</button>`).join('')}
+    </div>
+    <div class="main-col">${inner}</div>
+    <div class="side-panel">${profile.role==='student' ? sidePanelWidget() : sidePanelRole()}</div>
+    <div class="bottomnav"><div class="bottomnav-inner">
+      ${items.map(it=>`<button class="navbtn ${activeNav===it.k?'active':''}" data-nav="${it.k}"><span class="ic">${it.i}</span>${it.l}</button>`).join('')}
+    </div></div>
+  `;
+}
+function sidePanelWidget(){
+  const nextMod = MODULES.find(m => !lastAttemptFor(m.key));
+  return `
+    <div class="card">
+      <div class="section-title" style="margin-top:0;">Today's mission</div>
+      <div style="font-size:13.5px; opacity:0.75; margin-bottom:10px;">Finish 1 module to keep your streak</div>
+      <div class="pill streak" style="display:inline-flex;">🔥 ${profile.streak} day streak</div>
+    </div>
+    <div class="card">
+      <div class="section-title" style="margin-top:0;">Rewards</div>
+      <div class="stat-grid" style="margin:0;">
+        <div class="stat-card"><div class="n">${profile.xp}</div><div class="l">XP</div></div>
+        <div class="stat-card"><div class="n">${profile.coins}</div><div class="l">Coins</div></div>
+      </div>
+    </div>
+    ${nextMod ? `<div class="card"><div class="section-title" style="margin-top:0;">Up next</div><div style="font-weight:700;">${nextMod.icon} ${nextMod.title}</div></div>` : ''}
+  `;
+}
+function sidePanelRole(){
+  return `<div class="card"><div class="section-title" style="margin-top:0;">${escapeHtml(profile.name)}</div><span class="tag-role">${profile.role}</span></div>`;
+}
+
+/* =================================================================
+   LANDING / AUTH
+================================================================= */
+function renderLanding(){
+  return `
+    <div class="ob-wrap" style="justify-content:center; text-align:center;">
+      <div>
+        <div class="ob-mascot">${MASCOT}</div>
+        <h1 class="brand-word">Speakeng Studio</h1>
+        <div class="brand-tag">मराठीतून शिका, इंग्रजीतून बोला</div>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="land-signup">Create free account</button>
+        <button class="btn btn-ghost" id="land-login">Log in</button>
+      </div>
+    </div>`;
+}
+function attachLandingHandlers(){
+  document.getElementById('land-signup').onclick = ()=>{ authMode='signup'; authError=''; screen='auth'; render(); };
+  document.getElementById('land-login').onclick = ()=>{ authMode='login'; authError=''; screen='auth'; render(); };
+}
+function renderAuth(){
+  const isSignup = authMode==='signup';
+  return `
+    <div class="ob-wrap">
+      <div>
+        <button class="btn btn-ghost" id="auth-back" style="width:auto; padding:6px 0; margin-bottom:8px;">← Back</button>
+        <div class="brand-word small">Speakeng Studio</div>
+        <div class="ob-card" style="margin-top:18px;">
+          <h2>${isSignup ? 'Create your account' : 'Welcome back'}</h2>
+          <div class="ob-mr">${isSignup ? 'खातं तयार करा' : 'पुन्हा स्वागत आहे'}</div>
+          ${isSignup ? `
+            <div class="opt-grid" style="margin-bottom:12px;">
+              ${ROLES.map(r=>`<button class="opt ${authDraft.role===r.id?'selected':''}" data-role="${r.id}" style="text-align:center;">${r.icon} ${r.label}<span class="mr">${r.mr}</span></button>`).join('')}
+            </div>
+            <input id="auth-name" class="ob-input" placeholder="Your name" value="${escapeHtml(authDraft.name)}" style="margin-bottom:10px;" />
+          ` : ''}
+          <input id="auth-email" class="ob-input" type="email" placeholder="Email" value="${escapeHtml(authDraft.email)}" style="margin-bottom:10px;" />
+          <input id="auth-password" class="ob-input" type="password" placeholder="Password" value="${escapeHtml(authDraft.password)}" />
+          ${authError ? `<div class="feedback-box retry" style="margin-top:12px;">${escapeHtml(authError)}</div>` : ''}
+          ${isSignup ? `<div class="hint" style="margin-top:12px;">Mentors and Admins: use your institute email. Parents: ask your Admin to link your account to your child after signing up.</div>` : ''}
+        </div>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="auth-submit" ${signupPending?'disabled':''}>${signupPending ? 'Please wait…' : (isSignup ? 'Create account' : 'Log in')}</button>
+        <button class="btn btn-ghost" id="auth-switch">${isSignup ? 'Already have an account? Log in' : "New here? Create an account"}</button>
+      </div>
+    </div>`;
+}
+function attachAuthHandlers(){
+  const nameInput = document.getElementById('auth-name');
+  if(nameInput) nameInput.oninput = e=> authDraft.name = e.target.value;
+  document.getElementById('auth-email').oninput = e=> authDraft.email = e.target.value;
+  document.getElementById('auth-password').oninput = e=> authDraft.password = e.target.value;
+  document.getElementById('auth-back').onclick = ()=>{ screen='landing'; render(); };
+  document.getElementById('auth-switch').onclick = ()=>{ authMode = authMode==='signup' ? 'login' : 'signup'; authError=''; render(); };
+  document.querySelectorAll('[data-role]').forEach(b=> b.onclick = ()=>{ authDraft.role = b.dataset.role; render(); });
+  document.getElementById('auth-submit').onclick = ()=>{ authMode==='signup' ? handleSignup() : handleLogin(); };
+}
+async function handleSignup(){
+  const name = authDraft.name.trim(), email = authDraft.email.trim().toLowerCase(), pass = authDraft.password;
+  if(!name || !email || !pass){ authError='Please fill in every field.'; render(); return; }
+  if(!email.includes('@')){ authError='Enter a valid email.'; render(); return; }
+  if(pass.length<6){ authError='Password should be at least 6 characters.'; render(); return; }
+  signupPending = true; render();
+  const { data, error } = await supabase.auth.signUp({ email, password: pass, options:{ data:{ name, role: authDraft.role } } });
+  signupPending = false;
+  if(error){ authError = error.message; render(); return; }
+  if(data.session){
+    session = data.session;
+    profile = await fetchProfile(data.user.id);
+    if(profile.role!=='student') await updateProfile({ onboarded:true });
+    authError='';
+    await routeAfterAuth();
+  } else {
+    screen = 'emailcheck'; render();
+  }
+}
+async function handleLogin(){
+  const email = authDraft.email.trim().toLowerCase(), pass = authDraft.password;
+  if(!email || !pass){ authError='Enter your email and password.'; render(); return; }
+  signupPending = true; render();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  signupPending = false;
+  if(error){ authError = error.message; render(); return; }
+  session = data.session;
+  profile = await fetchProfile(data.user.id);
+  authError='';
+  await routeAfterAuth();
+}
+function renderEmailCheck(){
+  return `
+    <div class="ob-wrap" style="justify-content:center; text-align:center;">
+      <div>
+        <div class="ob-mascot">${MASCOT}</div>
+        <h2 style="font-size:22px;">Check your email 📩</h2>
+        <div class="ob-mr">We sent a confirmation link to ${escapeHtml(authDraft.email)}. Confirm it, then log in.</div>
+      </div>
+      <button class="btn btn-primary" id="ec-login">Go to log in</button>
+    </div>`;
+}
+async function handleLogout(){
+  await supabase.auth.signOut();
+  session = null; profile = null;
+  authDraft = { name:'', email:'', password:'', role:'student' };
+  authError = ''; screen='landing'; render();
+}
+
+/* =================================================================
+   ONBOARDING + DIAGNOSTIC (student)
+================================================================= */
+function obSteps(){ return (obDraft.name && obDraft.name.trim()) ? ['dept','lang','goal'] : ['name','dept','lang','goal']; }
+function renderOnboarding(){
+  const STEPS = obSteps(); const step = STEPS[obStep]; let inner = '';
+  if(step==='name'){
+    inner = `<div class="ob-mascot">${MASCOT}</div><div class="ob-card"><h2>What should we call you?</h2><div class="ob-mr">तुमचं नाव काय आहे?</div>
+      <input id="ob-name" class="ob-input" placeholder="Your name" value="${escapeHtml(obDraft.name||'')}" /></div>`;
+  } else if(step==='dept'){
+    inner = `<div class="ob-card"><h2>Which department are you in?</h2><div class="ob-mr">तुमचा विभाग कोणता आहे?</div>
+      <div class="ob-options">${DEPARTMENTS.map(d=>`<button class="opt ${obDraft.department===d?'selected':''}" data-dept="${escapeHtml(d)}">${d}</button>`).join('')}</div></div>`;
+  } else if(step==='lang'){
+    inner = `<div class="ob-card"><h2>Which language should help you learn?</h2><div class="ob-mr">कोणती भाषा तुम्हाला मदत करेल?</div>
+      <div class="ob-options">
+        <button class="opt ${obDraft.langHelp==='mr'?'selected':''}" data-lang="mr">Marathi<span class="mr">मराठी</span></button>
+        <button class="opt ${obDraft.langHelp==='hi'?'selected':''}" data-lang="hi">Hindi<span class="mr">हिंदी</span></button>
+        <button class="opt ${obDraft.langHelp==='en'?'selected':''}" data-lang="en">English only<span class="mr">फक्त इंग्रजी</span></button>
+      </div></div>`;
+  } else if(step==='goal'){
+    inner = `<div class="ob-card"><h2>Why do you want to learn English?</h2><div class="ob-mr">इंग्रजी शिकण्याचे कारण काय आहे?</div>
+      <div class="ob-options">${GOALS.map(g=>`<button class="opt ${obDraft.goal===g.id?'selected':''}" data-goal="${g.id}">${g.en}<span class="mr">${g.mr}</span></button>`).join('')}</div></div>`;
+  }
+  const canNext = (step==='name'&&(obDraft.name||'').trim()) || (step==='dept'&&obDraft.department) || (step==='lang'&&obDraft.langHelp) || (step==='goal'&&obDraft.goal);
+  return `<div class="ob-wrap"><div>
+      <div class="ob-progress">${STEPS.map((s,i)=>`<i class="${i<=obStep?'done':''}"></i>`).join('')}</div>
+      ${inner}
+    </div><div>
+      <button id="ob-next" class="btn btn-primary" ${canNext?'':'disabled'}>${obStep===STEPS.length-1?'Continue to diagnostic · पुढे जा':'Continue'}</button>
+      ${obStep>0?'<button id="ob-back" class="btn btn-ghost">Back</button>':''}
+    </div></div>`;
+}
+function attachOnboardingHandlers(){
+  const STEPS = obSteps();
+  const nameInput = document.getElementById('ob-name');
+  if(nameInput) nameInput.oninput = e=>{ obDraft.name = e.target.value; document.getElementById('ob-next').disabled = !e.target.value.trim(); };
+  document.querySelectorAll('[data-dept]').forEach(b=> b.onclick = ()=>{ obDraft.department = b.dataset.dept; render(); });
+  document.querySelectorAll('[data-lang]').forEach(b=> b.onclick = ()=>{ obDraft.langHelp = b.dataset.lang; render(); });
+  document.querySelectorAll('[data-goal]').forEach(b=> b.onclick = ()=>{ obDraft.goal = b.dataset.goal; render(); });
+  const back = document.getElementById('ob-back'); if(back) back.onclick = ()=>{ obStep--; render(); };
+  document.getElementById('ob-next').onclick = ()=>{
+    if(obStep < STEPS.length-1){ obStep++; render(); }
+    else { diag = { step:0, vocabAnswers:[], listenAnswer:null, speakResult:null, speakTranscript:'' }; screen='diagnostic'; render(); }
+  };
+}
+
+function renderDiagnostic(){
+  let inner = '';
+  if(diag.step < DIAGNOSTIC.vocab.length){
+    const q = DIAGNOSTIC.vocab[diag.step];
+    inner = `<div class="ob-card"><h2>What does "${q.en}" mean?</h2><div class="ob-mr">शब्दसंग्रह तपासणी — प्रश्न ${diag.step+1}/${DIAGNOSTIC.vocab.length}</div>
+      <div class="ob-options">${q.options.map((o,i)=>`<button class="opt" data-vocab="${i}">${o}</button>`).join('')}</div></div>`;
+  } else if(diag.step === DIAGNOSTIC.vocab.length){
+    inner = `<div class="ob-card"><h2>Listening check</h2><div class="ob-mr">ऐकून प्रश्नाचं उत्तर द्या</div>
+      <button class="listen-btn" id="diag-listen">🔊 Listen · ऐका</button>
+      <div class="ob-options" style="margin-top:16px;">
+        <div style="font-weight:700; margin-bottom:8px;">${DIAGNOSTIC.listen.q}</div>
+        ${DIAGNOSTIC.listen.options.map((o,i)=>`<button class="opt" data-listen="${i}">${o}</button>`).join('')}
+      </div></div>`;
+  } else {
+    const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    inner = `<div class="ob-card" style="text-align:center;"><h2>Speaking check</h2><div class="ob-mr">वाक्य वाचून दाखवा</div>
+      <div class="en-line" style="font-size:19px;">${DIAGNOSTIC.speak.target}</div>
+      ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="diag-mic">🎤</button><div style="font-size:12px; opacity:0.6;">${recognizing?'ऐकत आहे...':'Tap and speak'}</div>` : `<div class="hint">No mic support here — type it instead.</div>`}
+      <input class="type-fallback" id="diag-type" placeholder="Or type the sentence..." />
+      ${diag.speakResult ? `<div class="feedback-box good">Got it, thanks!</div>` : ''}
+      </div>`;
+  }
+  return `<div class="ob-wrap"><div><div class="ob-progress"><i class="done"></i><i class="done"></i><i class="done"></i></div>${inner}</div>
+    <div>${diag.step>=DIAGNOSTIC.vocab.length+1 ? `<button id="diag-finish" class="btn btn-primary" ${diag.speakResult?'':'disabled'}>See my level · माझी पातळी पहा</button>` : ''}</div></div>`;
+}
+function attachDiagnosticHandlers(){
+  document.querySelectorAll('[data-vocab]').forEach(b=> b.onclick = ()=>{
+    diag.vocabAnswers.push(parseInt(b.dataset.vocab));
+    diag.step++; render();
+  });
+  const listenBtn = document.getElementById('diag-listen');
+  if(listenBtn) listenBtn.onclick = ()=> speak(DIAGNOSTIC.listen.sentence);
+  document.querySelectorAll('[data-listen]').forEach(b=> b.onclick = ()=>{
+    diag.listenAnswer = parseInt(b.dataset.listen);
+    diag.step++; render();
+  });
+  const micBtn = document.getElementById('diag-mic');
+  if(micBtn) micBtn.onclick = ()=>{
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new Rec(); rec.lang='en-US'; recognizing=true; render();
+    rec.onresult = (e)=>{ diag.speakTranscript = e.results[0][0].transcript; diag.speakResult='ok'; recognizing=false; render(); };
+    rec.onerror = ()=>{ recognizing=false; render(); };
+    rec.onend = ()=>{ recognizing=false; };
+    rec.start();
+  };
+  const typeInput = document.getElementById('diag-type');
+  if(typeInput) typeInput.onkeydown = (e)=>{ if(e.key==='Enter'){ diag.speakTranscript = e.target.value; diag.speakResult='ok'; render(); } };
+  const finishBtn = document.getElementById('diag-finish');
+  if(finishBtn) finishBtn.onclick = finishDiagnostic;
+}
+async function finishDiagnostic(){
+  const vocabCorrect = diag.vocabAnswers.filter((a,i)=>a===DIAGNOSTIC.vocab[i].correct).length;
+  const vocabScore = Math.round((vocabCorrect/DIAGNOSTIC.vocab.length)*100);
+  const listenScore = diag.listenAnswer===DIAGNOSTIC.listen.correct ? 100 : 30;
+  const speakScore = wordMatchScore(diag.speakTranscript, DIAGNOSTIC.speak.target);
+  const composite = Math.round((vocabScore+listenScore+speakScore)/3);
+  let level = 'Foundation';
+  if(composite>=90) level='A3+'; else if(composite>=75) level='A3'; else if(composite>=60) level='A2'; else if(composite>=40) level='A1';
+  await supabase.from('diagnostics').insert({ student_id: profile.id, speak_score:speakScore, vocab_score:vocabScore, listen_score:listenScore, level_assigned:level });
+  await updateProfile({
+    name: obDraft.name.trim(), department: obDraft.department, mother_tongue: obDraft.langHelp,
+    goal: obDraft.goal, level, onboarded:true
+  });
+  await loadStudentData();
+  screen='home'; render();
+}
+
+/* =================================================================
+   HOME (student)
+================================================================= */
+function renderHome(){
+  const notAttempted = MODULES.find(m => !lastAttemptFor(m.key) && !(m.lockLevel && levelIndex(profile.level)<m.lockLevel));
+  const reviseList = MODULES.filter(m=>{ const l=lastAttemptFor(m.key); return l && l.score<70; }).slice(0,3);
+  return `
+    <div class="topbar">
+      <div class="pill streak">🔥 ${profile.streak}</div>
+      <div class="pill coins">🪙 ${profile.coins}</div>
+      <div class="pill">⭐ ${profile.stars}</div>
+    </div>
+    <div class="screen">
+      <div class="greet">नमस्कार, ${escapeHtml(profile.name)} 👋</div>
+      <div class="greet-mr">Level ${escapeHtml(profile.level||'Foundation')} · ${escapeHtml(profile.department||'')}</div>
+
+      ${notAttempted ? `
+      <div class="continue-card">
+        <div class="tag">CONTINUE LEARNING</div>
+        <h3>${notAttempted.icon} ${notAttempted.title}</h3>
+        <p>${notAttempted.tag}</p>
+        <button data-open-module="${notAttempted.key}">Start module</button>
+      </div>` : ''}
+
+      ${reviseList.length ? `
+      <div class="section-title">Revise · पुनरावृत्ती <span style="font-weight:600; opacity:0.5; font-size:12px;">spaced repetition</span></div>
+      <div class="revise-strip">${reviseList.map(m=>`<button class="revise-chip" data-open-module="${m.key}">${m.icon} ${m.title} · retry</button>`).join('')}</div>
+      ` : ''}
+
+      <div class="section-title">Your 8 modules <span style="font-weight:600; opacity:0.5; font-size:12px;">Onboarding → Mastery</span></div>
+      <div class="module-grid">
+        ${MODULES.map(m=>{
+          const locked = m.lockLevel && levelIndex(profile.level) < m.lockLevel;
+          const last = lastAttemptFor(m.key);
+          const count = attemptCount(m.key);
+          return `<button class="module-card ${locked?'locked':''}" ${locked?'':`data-open-module="${m.key}"`}>
+            ${last ? `<div class="ring" style="background:${last.score>=70?'var(--mint)':'#FFF0EE'}; color:${last.score>=70?'#116655':'#B5453A'};">${last.score}%</div>` : ''}
+            <div class="mic">${locked?'🔒':m.icon}</div>
+            <div class="mtag">${m.tag}</div>
+            <div class="mtitle">${m.title}</div>
+            <div class="mmeta">${locked ? `Unlocks at A2` : (count ? count+' done' : 'Not started')}</div>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+function openModule(key){
+  const mod = MODULES.find(m=>m.key===key);
+  if(mod.lockLevel && levelIndex(profile.level) < mod.lockLevel){ return; }
+  activeModuleKey = key;
+  const idx = attemptCount(key);
+  const recent = myProgress.filter(r=>r.module_key===key).slice(0,3).map(r=>r.score);
+  const avg = recent.length ? recent.reduce((a,b)=>a+b,0)/recent.length : 50;
+  let nextIndex = idx;
+  if(avg>=85) nextIndex = idx+1;
+  else if(avg<55 && idx>0) nextIndex = idx-1;
+  lesson = { step:0, itemIndex: Math.max(0,nextIndex), transcript:'', result:null, data:{} };
+  initModuleLesson(key);
+  screen='lesson'; render();
+}
+
+/* =================================================================
+   LESSON RUNNER (dispatches to per-module renderers)
+================================================================= */
+function renderLesson(){
+  const mod = MODULES.find(m=>m.key===activeModuleKey);
+  let body = '';
+  if(activeModuleKey==='m1') body = renderM1();
+  else if(activeModuleKey==='m2') body = renderM2();
+  else if(activeModuleKey==='m3') body = renderM3();
+  else if(activeModuleKey==='m4') body = renderM4();
+  else if(activeModuleKey==='m5') body = renderM5();
+  else if(activeModuleKey==='m6') body = renderM6();
+  else if(activeModuleKey==='m7') body = renderM7();
+  else if(activeModuleKey==='m8') body = renderM8();
+  else if(activeModuleKey==='complete') body = renderCompletion();
+  const pct = activeModuleKey==='complete' ? 100 : Math.round(((lesson.step||0)/3)*100);
+  return `<div class="lesson-top"><button class="close-x" id="lesson-close">✕</button><div class="lesson-bar"><i style="width:${pct}%"></i></div></div>${body}`;
+}
+function initModuleLesson(key){
+  if(key==='m1'){ const day = getVocabDay(lesson.itemIndex, profile.department); const item = READING_ITEMS[lesson.itemIndex % READING_ITEMS.length]; lesson.data = { day, item }; }
+  else if(key==='m2'){ lesson.data.item = GRAMMAR_ITEMS[lesson.itemIndex % GRAMMAR_ITEMS.length]; lesson.data.bank = shuffle(lesson.data.item.words.map((w,i)=>({w,i,used:false}))); lesson.data.answer=[]; }
+  else if(key==='m3'){ lesson.data.item = PRON_ITEMS[lesson.itemIndex % PRON_ITEMS.length]; }
+  else if(key==='m4'){ lesson.data.item = PICTURE_ITEMS[lesson.itemIndex % PICTURE_ITEMS.length]; }
+  else if(key==='m5'){ lesson.data.scenario = SCENARIOS[lesson.itemIndex % SCENARIOS.length]; lesson.data.turn = 0; lesson.data.hits = 0; lesson.data.userTurns = lesson.data.scenario.turns.filter(t=>t.isUser).length; }
+  else if(key==='m6'){
+    const n = attemptCount('m6'); const target = n<3?180:(n<6?300:600);
+    lesson.data.topic = TOPIC_BANK[n % TOPIC_BANK.length]; lesson.data.target = target; lesson.data.elapsed=0; lesson.data.running=false; lesson.data.transcript='';
+  }
+  else if(key==='m7'){ lesson.data.item = WRITING_PROMPTS[lesson.itemIndex % WRITING_PROMPTS.length]; lesson.data.text=''; }
+  else if(key==='m8'){ lesson.data.q = INTERVIEW_QUESTIONS[lesson.itemIndex % INTERVIEW_QUESTIONS.length]; lesson.data.gd = GD_TOPICS[lesson.itemIndex % GD_TOPICS.length]; lesson.data.partA=null; lesson.data.partB=null; }
+}
+
+/* --- M1 Vocabulary Builder --- */
+function renderM1(){
+  const { day, item } = lesson.data;
+  if(lesson.step===0){
+    return `<div class="lesson-card">
+      <div class="mr-line">आजचे १० शब्द — Today's 10 words</div>
+      <div class="vocab-grid">${day.map(([en,mr])=>`<div class="vocab-item"><span class="sp" data-say="${escapeHtml(en)}">🔊</span><div class="en">${escapeHtml(en)}</div><div class="mr">${escapeHtml(mr)}</div></div>`).join('')}</div>
+    </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m1-next">Continue to reading</button></div>`;
+  }
+  if(lesson.step===1){
+    const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    return `<div class="lesson-card" style="text-align:center;">
+      <div class="mr-line">हे वाक्य मोठ्याने वाचा</div>
+      <div class="en-line">${item.line}</div>
+      <button class="listen-btn" id="m1-listen">🔊 Listen</button>
+      ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="m1-mic">🎤</button>` : ''}
+      <input class="type-fallback" id="m1-type" placeholder="Or type the sentence..." />
+      ${lesson.result ? `<div class="feedback-box ${lesson.result>=50?'good':'retry'}">${lesson.result}% match</div>` : ''}
+    </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m1-to-q" ${lesson.result===null?'disabled':''}>Continue</button></div>`;
+  }
+  return `<div class="lesson-card">
+    <div class="mr-line">Comprehension check</div>
+    <div class="en-line" style="font-size:18px;">${item.q}</div>
+    <div id="mcq-options">${item.options.map((o,i)=>`<button class="mcq-opt" data-mcq="${i}">${o}</button>`).join('')}</div>
+  </div>`;
+}
+function attachM1(){
+  document.querySelectorAll('[data-say]').forEach(b=> b.onclick = ()=> speak(b.dataset.say));
+  const next = document.getElementById('m1-next'); if(next) next.onclick = ()=>{ lesson.step=1; lesson.result=null; render(); };
+  const listenBtn = document.getElementById('m1-listen'); if(listenBtn) listenBtn.onclick = ()=> speak(lesson.data.item.line);
+  const micBtn = document.getElementById('m1-mic'); if(micBtn) micBtn.onclick = ()=> genericMic((t)=>{ lesson.result = wordMatchScore(t, lesson.data.item.line); render(); });
+  const typeInput = document.getElementById('m1-type'); if(typeInput) typeInput.onkeydown = (e)=>{ if(e.key==='Enter'){ lesson.result = wordMatchScore(e.target.value, lesson.data.item.line); render(); } };
+  const toQ = document.getElementById('m1-to-q'); if(toQ) toQ.onclick = ()=>{ lesson.step=2; render(); };
+  document.querySelectorAll('[data-mcq]').forEach(b=> b.onclick = ()=>{
+    const idx = parseInt(b.dataset.mcq);
+    document.querySelectorAll('[data-mcq]').forEach(x=>x.disabled=true);
+    if(idx===lesson.data.item.correct){ b.classList.add('correct'); } else { b.classList.add('wrong'); document.querySelector(`[data-mcq="${lesson.data.item.correct}"]`).classList.add('correct'); }
+    const mcqScore = idx===lesson.data.item.correct ? 100 : 0;
+    const finalScore = Math.round((lesson.result||0)*0.5 + mcqScore*0.5);
+    setTimeout(()=> finishModule(finalScore, {}), 900);
+  });
+}
+
+/* --- M2 Grammar Builder --- */
+function renderM2(){
+  const it = lesson.data.item;
+  if(lesson.step===0){
+    return `<div class="lesson-card"><div class="mr-line">${it.mr}</div><div class="en-line">${it.en}</div>
+      <button class="listen-btn" id="m2-listen">🔊 Listen · ऐका</button>
+      <div class="hint">Level: ${it.level}</div>
+      </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m2-next">Continue</button></div>`;
+  }
+  if(lesson.step===1){
+    return `<div class="lesson-card"><div class="mr-line">शब्द योग्य क्रमाने लावा</div>
+      <div class="answer-slot" id="answer-slot">${lesson.data.answer.map(a=>`<div class="answer-chip">${a.w}</div>`).join('')}</div>
+      <div class="word-bank">${lesson.data.bank.map((b,idx)=>`<button class="word-chip ${b.used?'used':''}" data-bank-idx="${idx}">${b.w}</button>`).join('')}</div>
+      </div><div style="padding:0 20px; display:flex; gap:10px;">
+        <button class="btn btn-ghost" id="m2-reset" style="width:auto; flex:0 0 auto; padding:16px;">↺</button>
+        <button class="btn btn-primary" id="m2-check">Check</button></div>`;
+  }
+  if(lesson.step===2){
+    const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    return `<div class="lesson-card" style="text-align:center;"><div class="mr-line">आता स्वतः बोलून पाहा</div><div class="en-line">${it.en}</div>
+      ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="m2-mic">🎤</button>` : `<div class="hint">Type instead below.</div>`}
+      <input class="type-fallback" id="m2-type" placeholder="Or type the sentence..." />
+      ${lesson.result!==null ? `<div class="feedback-box ${lesson.result>=50?'good':'retry'}">${lesson.result}% match</div>` : ''}
+      </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m2-to-q" ${lesson.result===null?'disabled':''}>Continue</button></div>`;
+  }
+  return `<div class="lesson-card"><div class="mr-line">Quick check</div><div class="en-line" style="font-size:18px;">${it.mcq.q}</div>
+    <div>${it.mcq.options.map((o,i)=>`<button class="mcq-opt" data-mcq2="${i}">${o}</button>`).join('')}</div></div>`;
+}
+function attachM2(){
+  const listenBtn = document.getElementById('m2-listen'); if(listenBtn) listenBtn.onclick = ()=> speak(lesson.data.item.en);
+  const next = document.getElementById('m2-next'); if(next) next.onclick = ()=>{ lesson.step=1; render(); };
+  document.querySelectorAll('[data-bank-idx]').forEach(b=> b.onclick = ()=>{
+    const idx = parseInt(b.dataset.bankIdx); if(lesson.data.bank[idx].used) return;
+    lesson.data.bank[idx].used=true; lesson.data.answer.push(lesson.data.bank[idx]); render();
+  });
+  const reset = document.getElementById('m2-reset'); if(reset) reset.onclick = ()=>{ lesson.data.bank.forEach(b=>b.used=false); lesson.data.answer=[]; render(); };
+  const check = document.getElementById('m2-check'); if(check) check.onclick = ()=>{ lesson.step=2; lesson.result=null; render(); };
+  const micBtn = document.getElementById('m2-mic'); if(micBtn) micBtn.onclick = ()=> genericMic((t)=>{ lesson.result = wordMatchScore(t, lesson.data.item.en); render(); });
+  const typeInput = document.getElementById('m2-type'); if(typeInput) typeInput.onkeydown = (e)=>{ if(e.key==='Enter'){ lesson.result = wordMatchScore(e.target.value, lesson.data.item.en); render(); } };
+  const toQ = document.getElementById('m2-to-q'); if(toQ) toQ.onclick = ()=>{ lesson.step=3; render(); };
+  document.querySelectorAll('[data-mcq2]').forEach(b=> b.onclick = ()=>{
+    const idx = parseInt(b.dataset.mcq2);
+    document.querySelectorAll('[data-mcq2]').forEach(x=>x.disabled=true);
+    if(idx===lesson.data.item.mcq.correct){ b.classList.add('correct'); } else { b.classList.add('wrong'); document.querySelector(`[data-mcq2="${lesson.data.item.mcq.correct}"]`).classList.add('correct'); }
+    const mcqScore = idx===lesson.data.item.mcq.correct ? 100 : 0;
+    const finalScore = Math.round((lesson.result||0)*0.6 + mcqScore*0.4);
+    setTimeout(()=> finishModule(finalScore, {}), 900);
+  });
+}
+
+/* --- M3 Listening & Pronunciation Lab --- */
+function renderM3(){
+  const it = lesson.data.item;
+  const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  return `<div class="lesson-card" style="text-align:center;">
+    <div class="mr-line">Focus sound: ${it.sound}</div>
+    <div class="en-line">${it.sentence}</div>
+    <div class="hint">${it.tip}</div>
+    <button class="listen-btn" id="m3-listen" style="margin-top:14px;">🔊 Listen slowly</button>
+    ${supportsSpeech ? `<div style="margin-top:10px;"><button class="mic-btn ${recognizing?'listening':''}" id="m3-mic">🎤</button></div>` : ''}
+    <input class="type-fallback" id="m3-type" placeholder="Or type the sentence..." />
+    ${lesson.result!==null ? `<div class="feedback-box ${lesson.result>=50?'good':'retry'}">${lesson.result}% sound-word match</div>` : ''}
+  </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m3-finish" ${lesson.result===null?'disabled':''}>Finish</button></div>`;
+}
+function attachM3(){
+  const listenBtn = document.getElementById('m3-listen'); if(listenBtn) listenBtn.onclick = ()=> speak(lesson.data.item.sentence, 0.7);
+  const micBtn = document.getElementById('m3-mic'); if(micBtn) micBtn.onclick = ()=> genericMic((t)=>{ lesson.result = keywordScore(t, lesson.data.item.keywords); render(); });
+  const typeInput = document.getElementById('m3-type'); if(typeInput) typeInput.onkeydown = (e)=>{ if(e.key==='Enter'){ lesson.result = keywordScore(e.target.value, lesson.data.item.keywords); render(); } };
+  const finish = document.getElementById('m3-finish'); if(finish) finish.onclick = ()=> finishModule(lesson.result, {});
+}
+
+/* --- M4 Picture & Video Description --- */
+function renderM4(){
+  const it = lesson.data.item;
+  const showStarter = levelIndex(profile.level) < 2;
+  const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  return `<div class="lesson-card" style="text-align:center;">
+    <div class="scene-emoji">${it.scene}</div>
+    <div class="mr-line">${it.label}</div>
+    ${showStarter ? `<div class="hint">Try starting with: "${it.starter}"</div>` : ''}
+    ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="m4-mic" style="margin-top:12px;">🎤</button><div style="font-size:12px; opacity:0.6;">Describe the picture aloud</div>` : ''}
+    <textarea class="write-box" id="m4-type" placeholder="Or type your description..."></textarea>
+    ${lesson.result!==null ? `<div class="feedback-box ${lesson.result>=50?'good':'retry'}">${lesson.result}% keyword coverage</div>` : ''}
+  </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m4-finish" ${lesson.result===null?'disabled':''}>Finish</button></div>`;
+}
+function attachM4(){
+  const micBtn = document.getElementById('m4-mic'); if(micBtn) micBtn.onclick = ()=> genericMic((t)=>{ lesson.result = keywordScore(t, lesson.data.item.keywords); document.getElementById('m4-type').value = t; render(); });
+  const typeArea = document.getElementById('m4-type'); if(typeArea) typeArea.onblur = (e)=>{ if(e.target.value.trim()) lesson.result = keywordScore(e.target.value, lesson.data.item.keywords); render(); };
+  const finish = document.getElementById('m4-finish'); if(finish) finish.onclick = ()=> finishModule(lesson.result, {});
+}
+
+/* --- M5 Role Play --- */
+function renderM5(){
+  const sc = lesson.data.scenario, t = lesson.data.turn;
+  const past = sc.turns.slice(0, t);
+  const current = sc.turns[t];
+  const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const done = t >= sc.turns.length;
+  return `<div class="lesson-card">
+    <div class="mr-line">${sc.title} · scene ${lesson.itemIndex%SCENARIOS.length+1}</div>
+    ${past.map(l=>`<div class="dlg-line"><div class="dlg-who">${l.who}</div><div class="dlg-txt ${l.isUser?'user':''}">${l.isUser? '(you spoke)' : l.line}</div></div>`).join('')}
+    ${done ? `<div class="feedback-box good">Scene complete!</div>` : current.isUser ? `
+      <div class="dlg-line"><div class="dlg-who">You</div><div class="dlg-txt user">${current.hint}</div></div>
+      ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="m5-mic">🎤</button>` : ''}
+      <input class="type-fallback" id="m5-type" placeholder="Or type your line..." />
+    ` : `
+      <div class="dlg-line"><div class="dlg-who">${current.who}</div><div class="dlg-txt">${current.line}</div></div>
+      <button class="listen-btn" id="m5-listen">🔊 Listen</button>
+    `}
+  </div><div style="padding:0 20px;">
+    ${done ? `<button class="btn btn-primary" id="m5-finish">Finish</button>` : (current.isUser ? '' : `<button class="btn btn-primary" id="m5-next">Next</button>`)}
+  </div>`;
+}
+function attachM5(){
+  const listenBtn = document.getElementById('m5-listen'); if(listenBtn) listenBtn.onclick = ()=> speak(lesson.data.scenario.turns[lesson.data.turn].line);
+  const nextBtn = document.getElementById('m5-next'); if(nextBtn) nextBtn.onclick = ()=>{ lesson.data.turn++; render(); };
+  const micBtn = document.getElementById('m5-mic'); if(micBtn) micBtn.onclick = ()=> genericMic((t)=>{
+    const cur = lesson.data.scenario.turns[lesson.data.turn];
+    if(keywordScore(t, cur.keywords) >= 30) lesson.data.hits++;
+    lesson.data.turn++; render();
+  });
+  const typeInput = document.getElementById('m5-type'); if(typeInput) typeInput.onkeydown = (e)=>{
+    if(e.key==='Enter'){ const cur = lesson.data.scenario.turns[lesson.data.turn]; if(keywordScore(e.target.value, cur.keywords)>=30) lesson.data.hits++; lesson.data.turn++; render(); }
+  };
+  const finish = document.getElementById('m5-finish'); if(finish) finish.onclick = ()=>{
+    const score = Math.round((lesson.data.hits / Math.max(1,lesson.data.userTurns))*100);
+    finishModule(score, {});
+  };
+}
+
+/* --- M6 Daily Speaking Challenge --- */
+let m6Timer = null, m6Rec = null;
+function renderM6(){
+  const d = lesson.data;
+  const mins = Math.floor(d.target/60);
+  return `<div class="lesson-card" style="text-align:center;">
+    <div class="mr-line">Speak for ${mins} minute${mins>1?'s':''} on:</div>
+    <div class="en-line">${d.topic}</div>
+    <div class="timer-num">${String(Math.floor(d.elapsed/60)).padStart(2,'0')}:${String(d.elapsed%60).padStart(2,'0')}</div>
+    ${!d.running && lesson.result===null ? `<button class="btn btn-primary" id="m6-start">🎤 Start speaking</button>` : ''}
+    ${d.running ? `<button class="btn btn-primary" id="m6-stop" style="background:var(--coral);">⏹ Stop</button>` : ''}
+    ${lesson.result!==null ? `<div class="feedback-box good">Score ${lesson.result}% · ${d.fillerCount||0} filler words · ${d.wpm||0} wpm</div>` : ''}
+  </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m6-finish" ${lesson.result===null?'disabled':''}>Finish</button></div>`;
+}
+function attachM6(){
+  const startBtn = document.getElementById('m6-start');
+  if(startBtn) startBtn.onclick = ()=>{
+    const d = lesson.data; d.running = true; d.elapsed = 0; d.transcript='';
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(Rec){ m6Rec = new Rec(); m6Rec.lang='en-US'; m6Rec.continuous=true; m6Rec.interimResults=false;
+      m6Rec.onresult = (e)=>{ for(let i=e.resultIndex;i<e.results.length;i++){ d.transcript += ' ' + e.results[i][0].transcript; } };
+      m6Rec.onerror = ()=>{}; m6Rec.start();
+    }
+    m6Timer = setInterval(()=>{ d.elapsed++; if(d.elapsed>=d.target){ stopM6(); } render(); }, 1000);
+    render();
+  };
+  const stopBtn = document.getElementById('m6-stop'); if(stopBtn) stopBtn.onclick = stopM6;
+  const finish = document.getElementById('m6-finish'); if(finish) finish.onclick = ()=> finishModule(lesson.result, { seconds: lesson.data.elapsed, fillers: lesson.data.fillerCount||0 });
+}
+function stopM6(){
+  const d = lesson.data;
+  clearInterval(m6Timer); m6Timer=null;
+  if(m6Rec){ try{ m6Rec.stop(); }catch(e){} m6Rec=null; }
+  d.running = false;
+  const durationRatio = Math.min(1, d.elapsed/d.target);
+  d.fillerCount = countFillers(d.transcript);
+  d.wpm = wpm(d.transcript, d.elapsed);
+  const fluencyScore = Math.max(0, 100 - d.fillerCount*10);
+  lesson.result = Math.round(durationRatio*50 + fluencyScore*0.3 + Math.min(100,d.wpm)*0.2);
+  render();
+}
+
+/* --- M7 Real-World Writing Practice --- */
+function renderM7(){
+  const it = lesson.data.item;
+  return `<div class="lesson-card">
+    <div class="mr-line">Writing task</div>
+    <div class="en-line" style="font-size:18px;">${it.prompt}</div>
+    <div class="chip-row">${it.words.map(w=>`<span class="chip">${w}</span>`).join('')}</div>
+    <textarea class="write-box" id="m7-text" placeholder="Write here...">${escapeHtml(lesson.data.text)}</textarea>
+    ${lesson.result!==null ? `<div class="feedback-box ${lesson.result>=50?'good':'retry'}">${lesson.result}% score</div>` : ''}
+  </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m7-check">Check my writing</button></div>`;
+}
+function attachM7(){
+  const check = document.getElementById('m7-check'); if(check) check.onclick = ()=>{
+    const text = document.getElementById('m7-text').value;
+    lesson.data.text = text;
+    const score = writingScore(text, lesson.data.item.words);
+    lesson.result = score;
+    finishModule(score, {});
+  };
+}
+
+/* --- M8 AI Interview & GD Capstone --- */
+function renderM8(){
+  const d = lesson.data;
+  const supportsSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  if(d.partA===null){
+    return `<div class="lesson-card" style="text-align:center;">
+      <div class="mr-line">Mock interview · Part A</div>
+      <div class="en-line" style="font-size:19px;">${d.q}</div>
+      ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="m8a-mic">🎤</button>` : ''}
+      <textarea class="write-box" id="m8a-type" placeholder="Or type your answer..."></textarea>
+      ${d._aScore!==undefined ? `<div class="feedback-box good">Recorded — ${d._aScore}%</div>` : ''}
+    </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m8a-next" ${d._aScore===undefined?'disabled':''}>Continue to GD</button></div>`;
+  }
+  return `<div class="lesson-card" style="text-align:center;">
+    <div class="mr-line">Group discussion · Part B</div>
+    <div class="en-line" style="font-size:18px;">${d.gd.topic}</div>
+    <div class="hint">${d.gd.views.join('<br>')}</div>
+    ${supportsSpeech ? `<button class="mic-btn ${recognizing?'listening':''}" id="m8b-mic" style="margin-top:12px;">🎤</button>` : ''}
+    <textarea class="write-box" id="m8b-type" placeholder="Share your view..."></textarea>
+    ${d._bScore!==undefined ? `<div class="feedback-box good">Recorded — ${d._bScore}%</div>` : ''}
+  </div><div style="padding:0 20px;"><button class="btn btn-primary" id="m8b-finish" ${d._bScore===undefined?'disabled':''}>Finish capstone</button></div>`;
+}
+function scoreOpenAnswer(text){
+  const words = normalize(text).split(' ').filter(Boolean).length;
+  const fillers = countFillers(text);
+  return Math.max(10, Math.min(100, Math.round((Math.min(words,40)/40)*80 - fillers*5 + 20)));
+}
+function attachM8(){
+  const micA = document.getElementById('m8a-mic'); if(micA) micA.onclick = ()=> genericMic((t)=>{ lesson.data._aScore = scoreOpenAnswer(t); document.getElementById('m8a-type').value=t; render(); });
+  const typeA = document.getElementById('m8a-type'); if(typeA) typeA.onblur = (e)=>{ if(e.target.value.trim()) lesson.data._aScore = scoreOpenAnswer(e.target.value); render(); };
+  const nextA = document.getElementById('m8a-next'); if(nextA) nextA.onclick = ()=>{ lesson.data.partA = lesson.data._aScore; render(); };
+  const micB = document.getElementById('m8b-mic'); if(micB) micB.onclick = ()=> genericMic((t)=>{ lesson.data._bScore = scoreOpenAnswer(t); document.getElementById('m8b-type').value=t; render(); });
+  const typeB = document.getElementById('m8b-type'); if(typeB) typeB.onblur = (e)=>{ if(e.target.value.trim()) lesson.data._bScore = scoreOpenAnswer(e.target.value); render(); };
+  const finishB = document.getElementById('m8b-finish'); if(finishB) finishB.onclick = async ()=>{
+    lesson.data.partB = lesson.data._bScore;
+    const score = Math.round((lesson.data.partA + lesson.data.partB)/2);
+    await finishModule(score, { partA: lesson.data.partA, partB: lesson.data.partB });
+    await updateReadiness();
+  };
+}
+
+/* --- shared mic helper --- */
+function genericMic(onResult){
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!Rec) return;
+  const rec = new Rec(); rec.lang='en-US'; recognizing=true; render();
+  rec.onresult = (e)=>{ recognizing=false; onResult(e.results[0][0].transcript); };
+  rec.onerror = ()=>{ recognizing=false; render(); };
+  rec.onend = ()=>{ recognizing=false; };
+  rec.start();
+}
+
+/* --- completion + adaptive engine --- */
+async function finishModule(score, extra){
+  score = Math.max(0, Math.min(100, Math.round(score||0)));
+  const base = { m1:20, m2:20, m3:18, m4:20, m5:22, m6:25, m7:18, m8:30 }[activeModuleKey] || 20;
+  const xp = Math.round(base * (0.5 + score/200));
+  const stars = score>=90?3:(score>=70?2:1);
+  const recent = myProgress.filter(r=>r.module_key===activeModuleKey).slice(0,2).map(r=>r.score);
+  const avg = recent.length ? (recent.reduce((a,b)=>a+b,0)+score)/(recent.length+1) : score;
+  let adaptNote = '';
+  if(avg>=85) adaptNote = "Great work — we'll raise the difficulty next time! 📈";
+  else if(avg<55) adaptNote = "Let's practice a bit more at this level before moving on. 💪";
+  lastEarned = { xp, stars, coins: Math.round(xp/4), adaptNote };
+  await saveAttempt({ moduleKey: activeModuleKey, itemIndex: lesson.itemIndex, score, xp, stars, seconds: extra.seconds||0, fillers: extra.fillers||0, meta: extra });
+  activeModuleKey = 'complete';
+  render();
+}
+function renderCompletion(){
+  return `<div class="complete-wrap">${MASCOT}
+    <h2 style="font-size:22px; margin-top:12px;">छान! Module complete.</h2>
+    <div class="stars-row">${'⭐'.repeat(lastEarned.stars)}${'☆'.repeat(3-lastEarned.stars)}</div>
+    <div class="reward-grid">
+      <div class="reward-chip"><div class="n">+${lastEarned.xp}</div><div class="l">XP</div></div>
+      <div class="reward-chip"><div class="n">+${lastEarned.coins}</div><div class="l">COINS</div></div>
+    </div>
+    ${lastEarned.adaptNote ? `<div class="adapt-note">${lastEarned.adaptNote}</div>` : ''}
+    <button class="btn btn-primary" style="margin-top:18px;" id="complete-home">Back to modules</button>
+  </div>`;
+}
+
+/* =================================================================
+   LEADERBOARD / PROGRESS / PROFILE (student)
+================================================================= */
+function renderLeaderboard(){
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:4px;">Cohort Leaderboard</h2>
+    <div class="greet-mr" style="margin-bottom:14px;">Only students in your cohort are shown — cohort-safe ranking</div>
+    <div class="card">
+      ${leaderboard.length ? leaderboard.map((s,i)=>`<div class="lb-row"><div class="rank-num">${i+1}</div><div style="flex:1;"><div class="name">${escapeHtml(s.name || 'Student')}${s.id===profile.id?' (you)':''}</div><div class="sub">🔥 ${s.streak} day streak</div></div><div style="font-weight:800;">${s.xp} XP</div></div>`).join('') : `<div class="empty-note">You're not in a cohort yet — ask your Admin to add you to one to see the leaderboard.</div>`}
+    </div>
+  </div>`;
+}
+function renderProgress(){
+  const totalMods = MODULES.length;
+  const doneCount = new Set(myProgress.map(r=>r.module_key)).size;
+  const days = ['S','M','T','W','T','F','S'];
+  const today = new Date();
+  const weekSet = new Set(myActivity.map(a=>a.activity_date));
+  const weekCells = days.map((d,i)=>{ const dt=new Date(today); dt.setDate(today.getDate()-today.getDay()+i); const key=dt.toISOString().slice(0,10); return `<div class="week-day ${weekSet.has(key)?'done':''}">${d}</div>`; }).join('');
+  const badgeSet = new Set(myBadges.map(b=>b.badge_key));
+  const perModule = MODULES.map(m=>{ const rows = myProgress.filter(r=>r.module_key===m.key); const avg = rows.length ? Math.round(rows.reduce((a,r)=>a+r.score,0)/rows.length) : 0; return {m, avg}; });
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:14px;">Your Progress</h2>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="n">${profile.xp}</div><div class="l">Total XP</div></div>
+      <div class="stat-card"><div class="n">${profile.streak}</div><div class="l">Day Streak</div></div>
+      <div class="stat-card"><div class="n">${doneCount}/${totalMods}</div><div class="l">Modules tried</div></div>
+      <div class="stat-card"><div class="n">${profile.readiness_score||0}%</div><div class="l">Readiness score</div></div>
+    </div>
+    <div class="section-title">This week</div>
+    <div class="week-row">${weekCells}</div>
+    <div class="section-title">Module averages</div>
+    <div class="card">${perModule.map(x=>`<div class="bar-row"><div class="lbl">${x.m.icon} ${x.m.tag}</div><div class="bar-track"><div class="bar-fill" style="width:${x.avg}%;"></div></div><div style="width:32px; text-align:right; font-size:11px; font-weight:800;">${x.avg}%</div></div>`).join('')}</div>
+    <div class="section-title">Badges</div>
+    <div class="badge-grid">${BADGE_DEFS.map(b=>`<div class="badge ${badgeSet.has(b.key)?'':'locked'}"><div class="ic">${b.ic}</div><div class="l">${b.label}</div></div>`).join('')}</div>
+  </div>`;
+}
+function renderProfile(){
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:14px;">Profile</h2>
+    <div class="card">
+      <div style="font-weight:800; font-size:17px;">${escapeHtml(profile.name)}</div>
+      <div style="font-size:13px; opacity:0.6; margin-top:2px;">${escapeHtml(session.user.email||'')}</div>
+      <span class="tag-role" style="margin-top:8px; display:inline-block;">${profile.role}</span>
+      ${profile.role==='student' ? `<div style="font-size:13px; opacity:0.6; margin-top:8px;">Level: ${profile.level} · Dept: ${escapeHtml(profile.department||'—')} · Goal: ${escapeHtml(profile.goal||'—')}</div>` : ''}
+    </div>
+    <div class="card"><div style="font-weight:700; margin-bottom:8px;">About this app</div>
+      <div class="empty-note">Speech recognition uses your browser's built-in engine (Chrome/Edge work best) and needs microphone permission. Scoring is heuristic (word/keyword matching), not a certified assessment.</div>
+    </div>
+    <button class="btn btn-ghost" id="do-logout">Log out</button>
+  </div>`;
+}
+
+/* =================================================================
+   MENTOR DASHBOARD
+================================================================= */
+function renderMentor(){
+  const alerts = mentorStudents.flatMap(s=> s._alerts.map(a=>({...a, student:s})));
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:4px;">Mentor Dashboard</h2>
+    <div class="greet-mr" style="margin-bottom:14px;">${mentorStudents.length} students assigned to you</div>
+    ${alerts.length ? `<div class="section-title" style="margin-top:0;">Alerts</div>${alerts.map(a=>`<div class="alert-card ${a.type}"><div><div class="at">${escapeHtml(a.student.name)}</div><div class="am">${a.msg}</div></div><button class="btn-sm btn-teal" data-view-student="${a.student.id}">View</button></div>`).join('')} ` : `<div class="card"><div class="empty-note">No alerts right now — everyone's on track. 🎉</div></div>`}
+    <div class="section-title">Your students</div>
+    <div class="card">
+      ${mentorStudents.length ? mentorStudents.map(s=>`<div class="row-item"><div><div class="name">${escapeHtml(s.name)}</div><div class="sub">Level ${s.level||'—'} · 🔥 ${s.streak} · avg ${s._avgScore!==null?s._avgScore+'%':'—'}</div></div><button class="btn-sm btn-blue" data-view-student="${s.id}">Open</button></div>`).join('') : `<div class="empty-note">No students assigned yet — ask your Admin to assign students to you.</div>`}
+    </div>
+    ${mentorSelected ? renderMentorStudentDetail() : ''}
+  </div>`;
+}
+function renderMentorStudentDetail(){
+  const s = mentorSelected;
+  return `<div class="card">
+    <div class="section-title" style="margin-top:0;">${escapeHtml(s.name)}</div>
+    <div class="empty-note" style="margin-bottom:10px;">Level ${s.level||'—'} · XP ${s.xp} · Streak ${s.streak} · Last active ${s._lastActive||'never'}</div>
+    <div style="font-weight:700; margin-bottom:6px;">Give feedback / schedule a check-in</div>
+    <textarea class="write-box" id="mentor-note" placeholder="Spoken feedback notes, encouragement, or check-in plan...">${escapeHtml(noteDraft)}</textarea>
+    <button class="btn btn-primary" style="margin-top:10px;" id="mentor-save-note">Save note</button>
+  </div>`;
+}
+function attachMentorHandlers(){
+  document.querySelectorAll('[data-view-student]').forEach(b=> b.onclick = ()=>{
+    mentorSelected = mentorStudents.find(s=>s.id===b.dataset.viewStudent);
+    noteDraft = ''; render();
+  });
+  const noteArea = document.getElementById('mentor-note'); if(noteArea) noteArea.oninput = e=> noteDraft = e.target.value;
+  const saveNote = document.getElementById('mentor-save-note'); if(saveNote) saveNote.onclick = async ()=>{
+    if(!noteDraft.trim()) return;
+    await supabase.from('mentor_notes').insert({ mentor_id: profile.id, student_id: mentorSelected.id, note: noteDraft.trim() });
+    noteDraft=''; mentorSelected=null; render();
+  };
+}
+
+/* =================================================================
+   ADMIN DASHBOARD
+================================================================= */
+function renderAdmin(){
+  const atRisk = adminStudents.filter(s=>s._atRisk);
+  const totalStudents = adminStudents.length;
+  const avgXp = totalStudents ? Math.round(adminStudents.reduce((a,s)=>a+s.xp,0)/totalStudents) : 0;
+  const moduleAnalytics = MODULES.map(m=>({m, count: 0}));
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:14px;">Institute Overview</h2>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="n">${totalStudents}</div><div class="l">Total students</div></div>
+      <div class="stat-card"><div class="n">${adminCohorts.length}</div><div class="l">Cohorts</div></div>
+      <div class="stat-card"><div class="n">${avgXp}</div><div class="l">Avg XP</div></div>
+      <div class="stat-card"><div class="n">${atRisk.length}</div><div class="l">At-risk students</div></div>
+    </div>
+    <div class="section-title">Cohorts</div>
+    <div class="card">${adminCohorts.length ? adminCohorts.map(c=>`<div class="row-item"><div><div class="name">${escapeHtml(c.name)}</div><div class="sub">${c._count} students · avg ${c._avgXp} XP</div></div></div>`).join('') : `<div class="empty-note">No cohorts yet — create one in Manage.</div>`}</div>
+    <div class="section-title">At-risk list <span style="font-weight:600; opacity:0.5; font-size:12px;">inactive 3+ days or avg &lt;60%</span></div>
+    <div class="card">${atRisk.length ? atRisk.map(s=>`<div class="row-item"><div><div class="name">${escapeHtml(s.name)}</div><div class="sub">Last active ${s._lastActive||'never'} · avg ${s._avgScore!==null?s._avgScore+'%':'—'}</div></div></div>`).join('') : `<div class="empty-note">Nobody is currently at risk. 🎉</div>`}</div>
+    <div class="section-title">Content library — 8 modules</div>
+    <div class="card">${MODULES.map(m=>`<div class="row-item"><div><div class="name">${m.icon} ${m.title}</div><div class="sub">${m.tag}</div></div></div>`).join('')}</div>
+  </div>`;
+}
+function renderAdminManage(){
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:14px;">Manage</h2>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">Create a cohort</div>
+      <input class="ob-input" id="mg-cohort" placeholder="Cohort name" value="${escapeHtml(manageDraft.cohortName)}" style="margin-bottom:10px;" />
+      <button class="btn btn-primary" id="mg-create-cohort">Create cohort</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">Assign a student to a cohort</div>
+      <input class="ob-input" id="mg-student-email" placeholder="Student email" value="${escapeHtml(manageDraft.studentEmail)}" style="margin-bottom:10px;" />
+      <select class="ob-input" id="mg-cohort-select" style="margin-bottom:10px;">
+        <option value="">Choose cohort</option>
+        ${adminCohorts.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}
+      </select>
+      <button class="btn btn-teal" id="mg-assign-cohort">Assign to cohort</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">Assign a mentor to a student</div>
+      <input class="ob-input" id="mg-mentor-email" placeholder="Mentor email" value="${escapeHtml(manageDraft.mentorEmail)}" style="margin-bottom:10px;" />
+      <input class="ob-input" id="mg-student-email2" placeholder="Student email" style="margin-bottom:10px;" />
+      <button class="btn btn-teal" id="mg-assign-mentor">Assign mentor</button>
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:8px;">Link a parent to a student</div>
+      <input class="ob-input" id="mg-parent-email" placeholder="Parent email" style="margin-bottom:10px;" />
+      <input class="ob-input" id="mg-student-email3" placeholder="Student email" style="margin-bottom:10px;" />
+      <button class="btn btn-teal" id="mg-link-parent">Link parent</button>
+    </div>
+    <div id="mg-status" class="empty-note"></div>
+  </div>`;
+}
+function attachAdminManageHandlers(){
+  const status = (msg)=>{ const el2 = document.getElementById('mg-status'); if(el2) el2.textContent = msg; };
+  const cohortInput = document.getElementById('mg-cohort'); if(cohortInput) cohortInput.oninput = e=> manageDraft.cohortName = e.target.value;
+  const createCohort = document.getElementById('mg-create-cohort'); if(createCohort) createCohort.onclick = async ()=>{
+    if(!manageDraft.cohortName.trim()) return;
+    const { error } = await supabase.from('cohorts').insert({ name: manageDraft.cohortName.trim(), admin_id: profile.id });
+    status(error ? error.message : 'Cohort created.');
+    manageDraft.cohortName=''; await loadAdminData(); render();
+  };
+  const assignCohortBtn = document.getElementById('mg-assign-cohort'); if(assignCohortBtn) assignCohortBtn.onclick = async ()=>{
+    const email = document.getElementById('mg-student-email').value.trim().toLowerCase();
+    const cohortId = document.getElementById('mg-cohort-select').value;
+    if(!email || !cohortId) return;
+    const { data: stu } = await supabase.from('profiles').select('id').eq('email', email).eq('role','student').maybeSingle();
+    if(!stu){ status('No student found with that email.'); return; }
+    await supabase.from('profiles').update({ cohort_id: cohortId }).eq('id', stu.id);
+    status('Student assigned to cohort.'); await loadAdminData(); render();
+  };
+  const assignMentorBtn = document.getElementById('mg-assign-mentor'); if(assignMentorBtn) assignMentorBtn.onclick = async ()=>{
+    const mEmail = document.getElementById('mg-mentor-email').value.trim().toLowerCase();
+    const sEmail = document.getElementById('mg-student-email2').value.trim().toLowerCase();
+    if(!mEmail || !sEmail) return;
+    const { data: mentor } = await supabase.from('profiles').select('id').eq('email', mEmail).eq('role','mentor').maybeSingle();
+    const { data: stu } = await supabase.from('profiles').select('id').eq('email', sEmail).eq('role','student').maybeSingle();
+    if(!mentor || !stu){ status('Check both emails — mentor and student must already have accounts.'); return; }
+    await supabase.from('profiles').update({ mentor_id: mentor.id }).eq('id', stu.id);
+    status('Mentor assigned.'); await loadAdminData(); render();
+  };
+  const linkParentBtn = document.getElementById('mg-link-parent'); if(linkParentBtn) linkParentBtn.onclick = async ()=>{
+    const pEmail = document.getElementById('mg-parent-email').value.trim().toLowerCase();
+    const sEmail = document.getElementById('mg-student-email3').value.trim().toLowerCase();
+    if(!pEmail || !sEmail) return;
+    const { data: par } = await supabase.from('profiles').select('id').eq('email', pEmail).eq('role','parent').maybeSingle();
+    const { data: stu } = await supabase.from('profiles').select('id').eq('email', sEmail).eq('role','student').maybeSingle();
+    if(!par || !stu){ status('Check both emails — parent and student must already have accounts.'); return; }
+    const { error } = await supabase.from('parent_links').insert({ parent_id: par.id, student_id: stu.id });
+    status(error ? 'Already linked or error.' : 'Parent linked.'); render();
+  };
+}
+
+/* =================================================================
+   PARENT DASHBOARD
+================================================================= */
+function renderParent(){
+  return `<div class="topbar"><div></div></div><div class="screen">
+    <h2 style="font-size:20px; margin-bottom:4px;">Weekly Digest</h2>
+    <div class="greet-mr" style="margin-bottom:14px;">Visibility into your child's progress — not granular daily control</div>
+    ${parentChildren.length ? parentChildren.map(kid=>{
+      const dg = parentDigests[kid.id] || { minutes:0, xp:0, daysActive:0, modules:0, newBadges:[] };
+      return `<div class="card">
+        <div style="font-weight:800; font-size:16px; margin-bottom:8px;">${escapeHtml(kid.name)}</div>
+        <div class="stat-grid" style="margin:0 0 10px;">
+          <div class="stat-card"><div class="n">${dg.minutes}</div><div class="l">Speaking minutes</div></div>
+          <div class="stat-card"><div class="n">${dg.daysActive}</div><div class="l">Active days</div></div>
+          <div class="stat-card"><div class="n">${dg.xp}</div><div class="l">XP this week</div></div>
+          <div class="stat-card"><div class="n">${dg.modules}</div><div class="l">Modules touched</div></div>
+        </div>
+        ${dg.newBadges.length ? `<div style="font-weight:700; font-size:13px; margin-bottom:4px;">New milestones 🎉</div><div class="chip-row">${dg.newBadges.map(b=>`<span class="chip">${BADGE_DEFS.find(d=>d.key===b.badge_key)?.label || b.badge_key}</span>`).join('')}</div>` : ''}
+        <div class="hint" style="margin-top:10px;">${dg.daysActive>=4 ? `${escapeHtml(kid.name)} had a strong week — a kind word at home goes a long way! 💛` : `A gentle nudge to practice a little each day helps a lot. 🌱`}</div>
+      </div>`;
+    }).join('') : `<div class="card"><div class="empty-note">No child linked to your account yet — ask your institute Admin to link your account to your child's email.</div></div>`}
+  </div>`;
+}
+
+/* =================================================================
+   GLOBAL HANDLER ATTACH
+================================================================= */
+function attachHandlers(){
+  if(screen==='landing'){ attachLandingHandlers(); return; }
+  if(screen==='auth'){ attachAuthHandlers(); return; }
+  if(screen==='emailcheck'){ const b=document.getElementById('ec-login'); if(b) b.onclick=()=>{ authMode='login'; screen='auth'; render(); }; return; }
+  if(screen==='onboarding'){ attachOnboardingHandlers(); return; }
+  if(screen==='diagnostic'){ attachDiagnosticHandlers(); return; }
+
+  document.querySelectorAll('[data-nav]').forEach(b=> b.onclick = async ()=>{
+    screen=b.dataset.nav;
+    if(screen==='leaderboard') await loadLeaderboard();
+    if(screen==='mentor'){ mentorSelected=null; await loadMentorData(); }
+    if(screen==='admin' || screen==='adminManage') await loadAdminData();
+    if(screen==='parent') await loadParentData();
+    render();
+  });
+  document.querySelectorAll('[data-open-module]').forEach(b=> b.onclick = ()=> openModule(b.dataset.openModule));
+
+  if(screen==='lesson'){
+    const closeBtn = document.getElementById('lesson-close');
+    if(closeBtn) closeBtn.onclick = ()=>{ if(m6Timer) stopM6(); screen='home'; render(); };
+    if(activeModuleKey==='m1') attachM1();
+    else if(activeModuleKey==='m2') attachM2();
+    else if(activeModuleKey==='m3') attachM3();
+    else if(activeModuleKey==='m4') attachM4();
+    else if(activeModuleKey==='m5') attachM5();
+    else if(activeModuleKey==='m6') attachM6();
+    else if(activeModuleKey==='m7') attachM7();
+    else if(activeModuleKey==='m8') attachM8();
+    else if(activeModuleKey==='complete'){ const b=document.getElementById('complete-home'); if(b) b.onclick=()=>{ screen='home'; render(); }; }
+  }
+  if(screen==='profile'){ const logoutBtn = document.getElementById('do-logout'); if(logoutBtn) logoutBtn.onclick = ()=> handleLogout(); }
+  if(screen==='mentor') attachMentorHandlers();
+  if(screen==='adminManage') attachAdminManageHandlers();
+}
+
+boot();
+</script>
+</body>
+</html>
